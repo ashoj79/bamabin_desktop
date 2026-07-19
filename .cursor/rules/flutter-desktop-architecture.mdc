@@ -1,0 +1,63 @@
+---
+description: معماری فلاتر دسکتاپ Bamabin — BLoC، DI، روتینگ، رنگ‌ها و clean code
+alwaysApply: true
+---
+
+# Bamabin Desktop — Flutter Architecture
+
+You are a Flutter specialist building a movies/series desktop app for **Windows, Linux, and macOS**. Every feature must work on all three platforms; never rely on a single-OS API without a cross-platform abstraction.
+
+## Design → Code
+
+When given HTML or a Figma link, convert it to Dart/Flutter with full fidelity: layout, spacing, typography, colors, and interactive states.
+
+## Colors
+
+Primary blue is `blueColor` from `lib/config/color.dart` (`Color(0xFF29B6F6)`). Any blue in HTML/design maps to `blueColor` — never hardcode blue hex in UI.
+
+```dart
+// ❌ BAD
+Container(color: Color(0xFF29B6F6));
+
+// ✅ GOOD
+Container(color: blueColor);
+```
+
+## Architecture (BLoC)
+
+Views must not talk to data or repositories (`lib/repository`). Always use BLoC/Cubit:
+
+```
+View → Bloc/Cubit → Repository / Data
+```
+
+```dart
+// ❌ BAD — View calling repository
+final posts = await getIt<PostRepository>().fetch();
+
+// ✅ GOOD — View dispatches event; Bloc uses repository
+context.read<PostsBloc>().add(PostsRequested());
+```
+
+## Dependency Injection
+
+Use `get_it`. Register all dependencies in `lib/utils/di.dart` only.
+
+## Navigation
+
+Use `go_router` only. Define path constants in `lib/core/routes.dart` and configure routes in `lib/core/router.dart`.
+
+## Assets
+
+Store design images and SVGs in `assets/img/`. Prefer SVG over PNG/JPG whenever both exist or SVG is available; use raster only when SVG is not provided.
+
+## Direction (RTL)
+
+The entire app is **RTL** (right-to-left). Layouts, navigation, padding, and text alignment must follow RTL; do not introduce LTR-only UI unless a specific widget explicitly requires it (e.g. media player scrubber).
+
+## Clean Code
+
+- Clear, intention-revealing names
+- Small, focused functions and widgets
+- No duplication; match existing project style
+- No unnecessary comments or dead code

@@ -1,0 +1,34 @@
+class Routes {
+  static const String rootSplash = '/';
+  static const String splash = '/splash';
+  static const String main = '/main';
+  static const String postDetails = '/post-details';
+  static const String auth = '/auth';
+  static const String taxonomyPosts = '/taxonomy-posts';
+  static const String postTypeArchive = '/post-type-archive';
+  static const String search = '/search';
+  static const String profile = '/profile';
+  static const String editProfile = '/edit-profile';
+  static const String listsPosts = '/lists-posts';
+  static const String genresList = '/genres-list';
+  static const String subscription = '/subscription';
+  static const String tickets = '/tickets';
+  static const String ticketDetails = '/ticket-details';
+  static const String recentlyViewed = '/recently-viewed';
+  static const String watchlist = '/watchlist';
+  static const String notifications = '/notifications';
+  static const String telegramBot = '/telegram-bot';
+  static const String aboutUs = '/about-us';
+  static const String requests = '/requests';
+  static const String easyLogin = '/easy-login';
+  static const String userLists = '/user-lists';
+  static const String userListItems = '/user-list-items';
+  static const String userListPosts = '/user-list-posts';
+  static const String downloadOptions = '/download-options';
+  static const String playOptions = '/play-options';
+  static const String player = '/player';
+  static const String translator = '/translator';
+  static const String top250Movies = '/top-250/movies';
+  static const String top250Series = '/top-250/series';
+  static const String watchStatusPosts = '/watch-status-posts';
+}
