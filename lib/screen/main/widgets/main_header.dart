@@ -16,9 +16,7 @@ class MainHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 28),
       decoration: BoxDecoration(
         color: desktopBgColor,
-        border: Border(
-          bottom: BorderSide(color: desktopHeaderBorderColor),
-        ),
+        border: Border(bottom: BorderSide(color: desktopHeaderBorderColor)),
       ),
       child: Row(
         children: [

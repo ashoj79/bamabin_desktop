@@ -7,16 +7,8 @@ class MainSidebar extends StatelessWidget {
   const MainSidebar({super.key});
 
   static const _items = <_SidebarItem>[
-    _SidebarItem(
-      route: Routes.main,
-      title: 'خانه',
-      icon: Icons.home_outlined,
-    ),
-    _SidebarItem(
-      route: Routes.search,
-      title: 'جستجو',
-      icon: Icons.search,
-    ),
+    _SidebarItem(route: Routes.main, title: 'خانه', icon: Icons.home_outlined),
+    _SidebarItem(route: Routes.search, title: 'جستجو', icon: Icons.search),
     _SidebarItem(
       route: Routes.subscription,
       title: 'اشتراک',
