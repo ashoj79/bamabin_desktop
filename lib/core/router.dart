@@ -1,4 +1,5 @@
 import 'package:bamabin_desktop/core/routes.dart';
+import 'package:bamabin_desktop/screen/categories/categories_screen.dart';
 import 'package:bamabin_desktop/screen/home/home_screen.dart';
 import 'package:bamabin_desktop/screen/main/main_placeholder_page.dart';
 import 'package:bamabin_desktop/screen/main/main_screen.dart';
@@ -38,8 +39,7 @@ final GoRouter router = GoRouter(
         ),
         GoRoute(
           path: Routes.genresList,
-          builder: (context, state) =>
-              const MainPlaceholderPage(title: 'دسته‌بندی'),
+          builder: (context, state) => const CategoriesScreen(),
         ),
         GoRoute(
           path: Routes.subscription,
