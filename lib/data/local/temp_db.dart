@@ -1,6 +1,7 @@
 import 'package:bamabin_desktop/data/remote/model/user/vip_info.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/home_sections.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/genre.dart';
+import 'package:bamabin_desktop/data/remote/model/videos/post.dart';
 import 'package:bamabin_desktop/data/remote/model/app/department.dart';
 import 'package:bamabin_desktop/data/remote/model/app/about_us.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/taxonomy.dart';
@@ -15,6 +16,7 @@ class TempDb {
   static late AboutUs aboutUs;
   static List<Genre> genres = [];
   static List<Department> departments = [];
+  static List<Post> promotions = [];
   static String apiKey = '';
   static String avatar = '';
   static String username = '';

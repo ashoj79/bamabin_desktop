@@ -34,9 +34,6 @@ class _PostWidgetState extends State<PostWidget> {
 
   Post get post => widget.post;
 
-  String get _displayTitle =>
-      post.faTitle.isNotEmpty ? post.faTitle : post.title;
-
   String get _genreLabel {
     if (post.genresId.isEmpty || TempDb.genres.isEmpty) return '';
     final byId = {for (final g in TempDb.genres) g.id: g.name};
@@ -171,14 +168,17 @@ class _PostWidgetState extends State<PostWidget> {
                                 ],
                               ),
                             ),
-                            child: Text(
-                              _displayTitle,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                            child: Directionality(
+                              textDirection: TextDirection.ltr,
+                              child: Text(
+                                post.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
@@ -211,7 +211,7 @@ class _PostWidgetState extends State<PostWidget> {
                 ),
                 const SizedBox(height: 7),
                 Text(
-                  _displayTitle,
+                  post.faTitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(

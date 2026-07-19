@@ -16,6 +16,7 @@ import 'package:bamabin_desktop/repository/app_repository.dart';
 import 'package:bamabin_desktop/repository/video_repository.dart';
 import 'package:bamabin_desktop/repository/user_repository.dart';
 import 'package:bamabin_desktop/screen/splash/bloc/splash_bloc.dart';
+import 'package:bamabin_desktop/screen/search/bloc/search_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bamabin_desktop/config/dio_helper.dart';
 import 'package:get_it/get_it.dart';
@@ -71,4 +72,5 @@ Future<void> setupLocator() async {
   locator.registerSingleton<SplashBloc>(
     SplashBloc(locator(), locator(), locator()),
   );
+  locator.registerFactory<SearchBloc>(() => SearchBloc(locator()));
 }

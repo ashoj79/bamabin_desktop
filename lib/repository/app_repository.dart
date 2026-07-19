@@ -61,6 +61,7 @@ class AppRepository {
       TempDb.vipInfo.value = response.data!.vipInfo;
       TempDb.haveUnreadNotif.value = response.data!.haveUnreadNotif;
       TempDb.supportLink = response.data!.supportLink;
+      TempDb.promotions = response.data!.promotions;
 
       if (!response.data!.isAuth) {
         await _sharedPreferenceHelper.clearAuthData();

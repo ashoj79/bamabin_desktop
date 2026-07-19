@@ -2,7 +2,11 @@ import 'package:bamabin_desktop/core/routes.dart';
 import 'package:bamabin_desktop/screen/home/home_screen.dart';
 import 'package:bamabin_desktop/screen/main/main_placeholder_page.dart';
 import 'package:bamabin_desktop/screen/main/main_screen.dart';
+import 'package:bamabin_desktop/screen/search/bloc/search_bloc.dart';
+import 'package:bamabin_desktop/screen/search/search_screen.dart';
 import 'package:bamabin_desktop/screen/splash/splash_screen.dart';
+import 'package:bamabin_desktop/utils/di.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 final GoRouter router = GoRouter(
@@ -27,8 +31,10 @@ final GoRouter router = GoRouter(
         ),
         GoRoute(
           path: Routes.search,
-          builder: (context, state) =>
-              const MainPlaceholderPage(title: 'جستجو'),
+          builder: (context, state) => BlocProvider(
+            create: (_) => locator<SearchBloc>(),
+            child: const SearchScreen(),
+          ),
         ),
         GoRoute(
           path: Routes.genresList,
