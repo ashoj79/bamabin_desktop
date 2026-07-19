@@ -270,7 +270,7 @@ class _HomeSliderItem extends StatelessWidget {
           bottom: 0,
           width: MediaQuery.sizeOf(context).width * 0.55,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(44, 60, 44, 52),
+            padding: const EdgeInsets.fromLTRB(44, 60, 64, 52),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,

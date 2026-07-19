@@ -62,6 +62,14 @@ final GoRouter router = GoRouter(
       ],
     ),
     GoRoute(
+      path: Routes.auth,
+      builder: (context, state) {
+        final mode = (state.extra as Map?)?['mode'] as String?;
+        final title = mode == 'register' ? 'ثبت‌نام' : 'ورود';
+        return MainPlaceholderPage(title: title);
+      },
+    ),
+    GoRoute(
       path: Routes.postDetails,
       builder: (context, state) {
         final extra = state.extra;

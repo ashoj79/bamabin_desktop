@@ -18,101 +18,124 @@ class MainHeader extends StatelessWidget {
         color: desktopBgColor,
         border: Border(bottom: BorderSide(color: desktopHeaderBorderColor)),
       ),
-      child: Row(
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          InkWell(
-            onTap: () => context.go(Routes.main),
-            borderRadius: BorderRadius.circular(4),
-            child: Text(
-              'بامابین',
-              style: TextStyle(
-                fontSize: 19,
-                fontWeight: FontWeight.w800,
-                color: desktopInkColor,
-                letterSpacing: -0.5,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _HeaderNavButton(
-                  label: 'خانه',
-                  selected: location == Routes.main,
-                  onTap: () => context.go(Routes.main),
-                ),
-                _HeaderNavButton(
-                  label: 'جستجو',
-                  selected: location == Routes.search,
-                  onTap: () => context.go(Routes.search),
-                ),
-                _HeaderNavButton(
-                  label: 'دسته‌بندی',
-                  selected: location == Routes.genresList,
-                  onTap: () => context.go(Routes.genresList),
-                ),
-              ],
-            ),
-          ),
           Row(
             children: [
-              _HeaderIconButton(
-                icon: Icons.search,
-                onTap: () => context.go(Routes.search),
-              ),
-              const SizedBox(width: 8),
-              ValueListenableBuilder<bool>(
-                valueListenable: TempDb.haveUnreadNotif,
-                builder: (context, haveUnread, _) {
-                  return Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      _HeaderIconButton(
-                        icon: Icons.notifications_outlined,
-                        onTap: () => context.go(Routes.notifications),
-                      ),
-                      if (haveUnread)
-                        Positioned(
-                          top: 6,
-                          left: 6,
-                          child: Container(
-                            width: 7,
-                            height: 7,
-                            decoration: BoxDecoration(
-                              color: blueColor,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                    ],
-                  );
-                },
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                height: 32,
-                child: ElevatedButton(
-                  onPressed: () => context.go(Routes.subscription),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: blueColor,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(7),
-                    ),
-                    textStyle: const TextStyle(
-                      fontFamily: 'dana',
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
+              InkWell(
+                onTap: () => context.go(Routes.main),
+                borderRadius: BorderRadius.circular(4),
+                child: Text(
+                  'بامابین',
+                  style: TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.w800,
+                    color: desktopInkColor,
+                    letterSpacing: -0.5,
                   ),
-                  child: const Text('خرید اشتراک'),
                 ),
               ),
-              const SizedBox(width: 8),
-              _ProfileAvatar(onTap: () => context.go(Routes.profile)),
+              const Spacer(),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _HeaderIconButton(
+                    icon: Icons.search,
+                    onTap: () => context.go(Routes.search),
+                  ),
+                  const SizedBox(width: 8),
+                  ValueListenableBuilder<bool>(
+                    valueListenable: TempDb.haveUnreadNotif,
+                    builder: (context, haveUnread, _) {
+                      return Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          _HeaderIconButton(
+                            icon: Icons.notifications_outlined,
+                            onTap: () => context.go(Routes.notifications),
+                          ),
+                          if (haveUnread)
+                            Positioned(
+                              top: 6,
+                              left: 6,
+                              child: Container(
+                                width: 7,
+                                height: 7,
+                                decoration: BoxDecoration(
+                                  color: blueColor,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  ValueListenableBuilder<bool>(
+                    valueListenable: TempDb.isLoggedIn,
+                    builder: (context, isLoggedIn, _) {
+                      if (!isLoggedIn) {
+                        return const _AuthButtons();
+                      }
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            height: 32,
+                            child: ElevatedButton(
+                              onPressed: () =>
+                                  context.go(Routes.subscription),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: blueColor,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(7),
+                                ),
+                                textStyle: const TextStyle(
+                                  fontFamily: 'dana',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              child: const Text('خرید اشتراک'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          _ProfileAvatar(
+                            onTap: () => context.go(Routes.profile),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _HeaderNavButton(
+                label: 'خانه',
+                selected: location == Routes.main,
+                onTap: () => context.go(Routes.main),
+              ),
+              _HeaderNavButton(
+                label: 'جستجو',
+                selected: location == Routes.search,
+                onTap: () => context.go(Routes.search),
+              ),
+              _HeaderNavButton(
+                label: 'دسته‌بندی',
+                selected: location == Routes.genresList,
+                onTap: () => context.go(Routes.genresList),
+              ),
             ],
           ),
         ],
@@ -172,6 +195,73 @@ class _HeaderIconButton extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
+    );
+  }
+}
+
+class _AuthButtons extends StatelessWidget {
+  const _AuthButtons();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 32,
+          child: OutlinedButton(
+            onPressed: () => context.go(
+              Routes.auth,
+              extra: {'mode': 'register'},
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: desktopInkColor,
+              side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+              backgroundColor: Colors.white.withValues(alpha: 0.04),
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(7),
+              ),
+              textStyle: const TextStyle(
+                fontFamily: 'dana',
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            child: const Text('ثبت‌نام'),
+          ),
+        ),
+        const SizedBox(width: 8),
+        SizedBox(
+          height: 32,
+          child: ElevatedButton(
+            onPressed: () => context.go(
+              Routes.auth,
+              extra: {'mode': 'login'},
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: blueColor,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(7),
+              ),
+              textStyle: const TextStyle(
+                fontFamily: 'dana',
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            child: const Text('ورود'),
+          ),
+        ),
+      ],
     );
   }
 }
