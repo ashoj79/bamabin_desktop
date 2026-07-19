@@ -1,8 +1,11 @@
 import 'package:bamabin_desktop/core/routes.dart';
+import 'package:bamabin_desktop/data/remote/model/videos/post.dart';
 import 'package:bamabin_desktop/screen/categories/categories_screen.dart';
 import 'package:bamabin_desktop/screen/home/home_screen.dart';
 import 'package:bamabin_desktop/screen/main/main_placeholder_page.dart';
 import 'package:bamabin_desktop/screen/main/main_screen.dart';
+import 'package:bamabin_desktop/screen/post_details/bloc/post_details_bloc.dart';
+import 'package:bamabin_desktop/screen/post_details/post_details_screen.dart';
 import 'package:bamabin_desktop/screen/search/bloc/search_bloc.dart';
 import 'package:bamabin_desktop/screen/search/search_screen.dart';
 import 'package:bamabin_desktop/screen/splash/splash_screen.dart';
@@ -60,8 +63,17 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(
       path: Routes.postDetails,
-      builder: (context, state) =>
-          const MainPlaceholderPage(title: 'جزئیات'),
+      builder: (context, state) {
+        final extra = state.extra;
+        if (extra is! Post) {
+          return const MainPlaceholderPage(title: 'جزئیات');
+        }
+        return BlocProvider(
+          create: (_) => locator<PostDetailsBloc>()
+            ..add(LoadPostDetailsEvent(extra)),
+          child: const PostDetailsScreen(),
+        );
+      },
     ),
     GoRoute(
       path: Routes.taxonomyPosts,
