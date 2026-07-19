@@ -324,7 +324,7 @@ class _HomeSliderItem extends StatelessWidget {
                   ),
                 ),
                 if (_englishTitle.isNotEmpty) ...[
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 16),
                   Text(
                     _englishTitle,
                     maxLines: 1,
