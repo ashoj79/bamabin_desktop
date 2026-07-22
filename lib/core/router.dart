@@ -8,6 +8,7 @@ import 'package:bamabin_desktop/screen/main/main_placeholder_page.dart';
 import 'package:bamabin_desktop/screen/main/main_screen.dart';
 import 'package:bamabin_desktop/screen/post_details/bloc/post_details_bloc.dart';
 import 'package:bamabin_desktop/screen/post_details/post_details_screen.dart';
+import 'package:bamabin_desktop/screen/profile/bloc/profile_bloc.dart';
 import 'package:bamabin_desktop/screen/profile/profile_screen.dart';
 import 'package:bamabin_desktop/screen/search/bloc/search_bloc.dart';
 import 'package:bamabin_desktop/screen/search/search_screen.dart';
@@ -54,7 +55,10 @@ final GoRouter router = GoRouter(
         ),
         GoRoute(
           path: Routes.profile,
-          builder: (context, state) => const ProfileScreen(),
+          builder: (context, state) => BlocProvider(
+            create: (_) => locator<ProfileBloc>(),
+            child: const ProfileScreen(),
+          ),
         ),
         GoRoute(
           path: Routes.notifications,

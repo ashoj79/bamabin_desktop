@@ -2,7 +2,9 @@ import 'dart:io';
 import 'package:bamabin_desktop/data/local/temp_db.dart';
 import 'package:bamabin_desktop/data/remote/api_service/user_api_service.dart';
 import 'package:bamabin_desktop/data/remote/model/user/auth_response.dart';
+import 'package:bamabin_desktop/data/remote/model/user/dashboard.dart';
 import 'package:bamabin_desktop/data/remote/model/user/device.dart';
+import 'package:bamabin_desktop/data/remote/model/user/play_status.dart';
 import 'package:bamabin_desktop/data/remote/model/user/request.dart';
 import 'package:bamabin_desktop/data/remote/model/user/user_list.dart';
 import 'package:bamabin_desktop/data/remote/model/user/vip_info.dart';
@@ -262,6 +264,22 @@ class UserRepository {
 
   Future<DataState<WatchReport>> getWatchReport() async {
     final response = await _userApiService.getWatchReport();
+    if (!response.status) {
+      return DataError(response.message ?? 'خطایی رخ داده است');
+    }
+    return DataSuccess(response.data);
+  }
+
+  Future<DataState<Dashboard>> getDashboard() async {
+    final response = await _userApiService.getDashboard();
+    if (!response.status) {
+      return DataError(response.message ?? 'خطایی رخ داده است');
+    }
+    return DataSuccess(response.data);
+  }
+
+  Future<DataState<List<PlayStatus>>> getPlayStatus({int? page}) async {
+    final response = await _userApiService.getPlayStatus(page: page);
     if (!response.status) {
       return DataError(response.message ?? 'خطایی رخ داده است');
     }

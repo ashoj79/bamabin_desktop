@@ -1,7 +1,9 @@
 import 'package:bamabin_desktop/data/remote/api_service/base_api_service.dart';
 import 'package:bamabin_desktop/data/remote/model/api_response.dart';
 import 'package:bamabin_desktop/data/remote/model/user/auth_response.dart';
+import 'package:bamabin_desktop/data/remote/model/user/dashboard.dart';
 import 'package:bamabin_desktop/data/remote/model/user/device.dart';
+import 'package:bamabin_desktop/data/remote/model/user/play_status.dart';
 import 'package:bamabin_desktop/data/remote/model/user/request.dart';
 import 'package:bamabin_desktop/data/remote/model/user/user_data.dart';
 import 'package:bamabin_desktop/data/remote/model/user/user_list.dart';
@@ -121,6 +123,24 @@ class UserApiService extends BaseApiService {
     return await get(
       '/user/data',
       (json) => UserData.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
+  Future<ApiResponse<Dashboard>> getDashboard() async {
+    return await get(
+      '/dashboard',
+      (json) => Dashboard.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
+  Future<ApiResponse<List<PlayStatus>>> getPlayStatus({int? page}) async {
+    return await get(
+      '/play_status',
+      (json) => List<PlayStatus>.generate(
+        (json as List).length,
+        (index) => PlayStatus.fromJson(json[index] as Map<String, dynamic>),
+      ),
+      queryParameters: page != null ? {'page': page} : null,
     );
   }
 
