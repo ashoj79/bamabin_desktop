@@ -7,7 +7,7 @@ class GoogleAuthConfig {
   GoogleAuthConfig._();
 
   static const clientId =
-      '853087624154-ollmdcruttejpikutj2uo3p0jdb3kqa6.apps.googleusercontent.com';
+      '94498494608-egb34h765g10vmqqbhdbr369pl4knp5l.apps.googleusercontent.com';
 
   /// Prefer `--dart-define=GOOGLE_CLIENT_SECRET=...`, otherwise set [_fallbackSecret].
   static const clientSecret = String.fromEnvironment(
@@ -15,5 +15,5 @@ class GoogleAuthConfig {
     defaultValue: _fallbackSecret,
   );
 
-  static const _fallbackSecret = '';
+  static const _fallbackSecret = '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';
 }

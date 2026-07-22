@@ -15,6 +15,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthSendOtpEvent>(_onSendOtp);
     on<AuthVerifyOtpEvent>(_onVerifyOtp);
     on<AuthDeleteDeviceEvent>(_onDeleteDevice);
+    on<AuthRegisterEvent>(_onRegister);
   }
 
   final UserRepository _userRepository;
@@ -39,6 +40,52 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
 
     final result = await _userRepository.loginWithUsername(username, password);
+    if (result is DataSuccess) {
+      emit(AuthSuccess());
+      return;
+    }
+
+    await _handleAuthFailure(result.errorMessage, emit);
+  }
+
+  Future<void> _onRegister(
+    AuthRegisterEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    final email = event.email.trim();
+    final username = event.username.trim();
+    final password = event.password.trim();
+    final phone = event.phone.trim();
+
+    if (username.isEmpty) {
+      emit(AuthError('نام کاربری را وارد کنید'));
+      return;
+    }
+    if (email.isEmpty) {
+      emit(AuthError('ایمیل را وارد کنید'));
+      return;
+    }
+    if (!_isValidEmail(email)) {
+      emit(AuthError('ایمیل معتبر نیست'));
+      return;
+    }
+    if (password.length < 8) {
+      emit(AuthError('رمز عبور باید حداقل ۸ کاراکتر باشد'));
+      return;
+    }
+    if (phone.isNotEmpty && !_isValidPhone(phone)) {
+      emit(AuthError('شماره موبایل باید با ۰۹ شروع شود و ۱۱ رقم باشد'));
+      return;
+    }
+
+    emit(AuthLoading());
+    final result = await _userRepository.register(
+      email,
+      username,
+      password,
+      password,
+      phone: phone,
+    );
     if (result is DataSuccess) {
       emit(AuthSuccess());
       return;
@@ -159,4 +206,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   bool _isValidPhone(String phone) => RegExp(r'^09[0-9]{9}$').hasMatch(phone);
 
   bool _isValidOtp(String code) => RegExp(r'^[0-9]{6}$').hasMatch(code);
+
+  bool _isValidEmail(String email) =>
+      RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email);
 }

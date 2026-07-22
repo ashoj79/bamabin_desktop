@@ -179,6 +179,21 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
+  void _submitRegister() {
+    if (!_agreeTerms) return;
+    FocusScope.of(context).unfocus();
+    _socketApiKey = null;
+    _isUsingGoogle = false;
+    context.read<AuthBloc>().add(
+      AuthRegisterEvent(
+        email: _signupEmail.text,
+        username: _signupUsername.text,
+        password: _signupPassword.text,
+        phone: _signupPhone.text,
+      ),
+    );
+  }
+
   void _submitSendOtp() {
     if (_otpResendSeconds > 0) return;
     FocusScope.of(context).unfocus();
@@ -442,6 +457,7 @@ class _AuthScreenState extends State<AuthScreen> {
                               _isLogin = true;
                               _qrExpanded = true;
                             }),
+                            onRegister: _submitRegister,
                             onGoogle: _signInWithGoogle,
                           ),
                       ],
@@ -788,6 +804,7 @@ class _SignupPanel extends StatelessWidget {
     required this.onToggleTerms,
     required this.onToggleObscure,
     required this.onLoginTap,
+    required this.onRegister,
     required this.onGoogle,
   });
 
@@ -800,6 +817,7 @@ class _SignupPanel extends StatelessWidget {
   final VoidCallback onToggleTerms;
   final VoidCallback onToggleObscure;
   final VoidCallback onLoginTap;
+  final VoidCallback onRegister;
   final VoidCallback onGoogle;
 
   @override
@@ -915,7 +933,7 @@ class _SignupPanel extends StatelessWidget {
         _PrimaryButton(
           label: 'ایجاد حساب کاربری',
           enabled: agreeTerms,
-          onTap: () {},
+          onTap: onRegister,
         ),
         const _OrDivider(label: 'یا ثبت‌نام با'),
         _SocialButtons(onGoogle: onGoogle),
