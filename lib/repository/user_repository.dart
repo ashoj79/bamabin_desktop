@@ -123,6 +123,16 @@ class UserRepository {
     return DataSuccess(response.data);
   }
 
+  Future<DataState<void>> loginWithApiKey(String apiKey) async {
+    TempDb.apiKey = apiKey;
+    if (!(await _getUserData())) {
+      return DataError('خطایی رخ داده است');
+    }
+    await _sharedPreferenceHelper.setApiKey(apiKey);
+    TempDb.isLoggedIn.value = true;
+    return DataSuccess();
+  }
+
   Future<DataState<AuthResponse>> loginWithGoogle(String token) async {
     Map<String, String> deviceInfo = await _getDeviceInfo();
     final response = await _userApiService.loginWithGoogle(
@@ -485,14 +495,16 @@ class UserRepository {
     String deviceModel = '';
     String systemVersion = '';
 
-    if (Platform.isIOS) {
-      IosDeviceInfo iosInfo = await DeviceInfoPlugin().iosInfo;
-      deviceModel = iosInfo.utsname.machine;
-      systemVersion = iosInfo.systemVersion;
-    } else if (Platform.isAndroid) {
-      AndroidDeviceInfo androidInfo = await DeviceInfoPlugin().androidInfo;
-      deviceModel = androidInfo.model;
-      systemVersion = androidInfo.version.release;
+    if (Platform.isLinux) {
+      LinuxDeviceInfo linuxInfo = await DeviceInfoPlugin().linuxInfo;
+      deviceModel = linuxInfo.name;
+      systemVersion = '1.0.0';
+    } else if (Platform.isWindows) {
+      deviceModel = 'Windows';
+      systemVersion = '1.0.0';
+    } else if (Platform.isMacOS) {
+      deviceModel = 'MacOS';
+      systemVersion = '1.0.0';
     }
 
     return {'device_model': deviceModel, 'system_version': systemVersion};

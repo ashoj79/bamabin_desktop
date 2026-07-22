@@ -1,11 +1,14 @@
 import 'package:bamabin_desktop/core/routes.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/post.dart';
+import 'package:bamabin_desktop/screen/auth/auth_screen.dart';
+import 'package:bamabin_desktop/screen/auth/bloc/auth_bloc.dart';
 import 'package:bamabin_desktop/screen/categories/categories_screen.dart';
 import 'package:bamabin_desktop/screen/home/home_screen.dart';
 import 'package:bamabin_desktop/screen/main/main_placeholder_page.dart';
 import 'package:bamabin_desktop/screen/main/main_screen.dart';
 import 'package:bamabin_desktop/screen/post_details/bloc/post_details_bloc.dart';
 import 'package:bamabin_desktop/screen/post_details/post_details_screen.dart';
+import 'package:bamabin_desktop/screen/profile/profile_screen.dart';
 import 'package:bamabin_desktop/screen/search/bloc/search_bloc.dart';
 import 'package:bamabin_desktop/screen/search/search_screen.dart';
 import 'package:bamabin_desktop/screen/splash/splash_screen.dart';
@@ -51,8 +54,7 @@ final GoRouter router = GoRouter(
         ),
         GoRoute(
           path: Routes.profile,
-          builder: (context, state) =>
-              const MainPlaceholderPage(title: 'حساب کاربری'),
+          builder: (context, state) => const ProfileScreen(),
         ),
         GoRoute(
           path: Routes.notifications,
@@ -63,11 +65,10 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(
       path: Routes.auth,
-      builder: (context, state) {
-        final mode = (state.extra as Map?)?['mode'] as String?;
-        final title = mode == 'register' ? 'ثبت‌نام' : 'ورود';
-        return MainPlaceholderPage(title: title);
-      },
+      builder: (context, state) => BlocProvider(
+        create: (_) => locator<AuthBloc>(),
+        child: const AuthScreen(),
+      ),
     ),
     GoRoute(
       path: Routes.postDetails,

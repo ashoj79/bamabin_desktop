@@ -1,6 +1,7 @@
 import 'package:bamabin_desktop/config/color.dart';
 import 'package:bamabin_desktop/core/routes.dart';
 import 'package:bamabin_desktop/data/local/temp_db.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -204,64 +205,28 @@ class _AuthButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: 32,
-          child: OutlinedButton(
-            onPressed: () => context.go(
-              Routes.auth,
-              extra: {'mode': 'register'},
-            ),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: desktopInkColor,
-              side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
-              backgroundColor: Colors.white.withValues(alpha: 0.04),
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(7),
-              ),
-              textStyle: const TextStyle(
-                fontFamily: 'dana',
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            child: const Text('ثبت‌نام'),
+    return SizedBox(
+      height: 32,
+      child: ElevatedButton(
+        onPressed: () => context.go(Routes.auth),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: blueColor,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(7),
+          ),
+          textStyle: const TextStyle(
+            fontFamily: 'dana',
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(width: 8),
-        SizedBox(
-          height: 32,
-          child: ElevatedButton(
-            onPressed: () => context.go(
-              Routes.auth,
-              extra: {'mode': 'login'},
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: blueColor,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(7),
-              ),
-              textStyle: const TextStyle(
-                fontFamily: 'dana',
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            child: const Text('ورود'),
-          ),
-        ),
-      ],
+        child: const Text('ورود / ثبت‌نام'),
+      ),
     );
   }
 }
@@ -276,6 +241,16 @@ class _ProfileAvatar extends StatelessWidget {
     final initial = TempDb.username.isNotEmpty
         ? TempDb.username.characters.first
         : 'ب';
+    final avatarUrl = TempDb.avatar;
+
+    Widget fallback() => Text(
+          initial,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+          ),
+        );
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -298,15 +273,18 @@ class _ProfileAvatar extends StatelessWidget {
               ),
             ],
           ),
+          clipBehavior: Clip.antiAlias,
           alignment: Alignment.center,
-          child: Text(
-            initial,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-            ),
-          ),
+          child: avatarUrl.isNotEmpty
+              ? CachedNetworkImage(
+                  imageUrl: avatarUrl,
+                  width: 32,
+                  height: 32,
+                  fit: BoxFit.cover,
+                  errorWidget: (_, _, _) => Center(child: fallback()),
+                  placeholder: (_, _) => Center(child: fallback()),
+                )
+              : fallback(),
         ),
       ),
     );

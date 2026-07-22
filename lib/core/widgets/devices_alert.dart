@@ -2,6 +2,43 @@ import 'package:bamabin_desktop/config/color.dart';
 import 'package:bamabin_desktop/data/remote/model/user/device.dart';
 import 'package:flutter/material.dart';
 
+ButtonStyle _deviceButtonStyle(BuildContext context) {
+  final primary = Theme.of(context).colorScheme.primary;
+  return ButtonStyle(
+    backgroundColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.focused) ||
+          states.contains(WidgetState.hovered)) {
+        return primary;
+      }
+      return Colors.white;
+    }),
+    foregroundColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.focused) ||
+          states.contains(WidgetState.hovered)) {
+        return Colors.white;
+      }
+      return Colors.black;
+    }),
+    shape: WidgetStateProperty.all(
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    ),
+    minimumSize: WidgetStateProperty.all(const Size(double.infinity, 48)),
+    elevation: WidgetStateProperty.all(0),
+  );
+}
+
+ButtonStyle _logoutAllButtonStyle() {
+  return ButtonStyle(
+    backgroundColor: WidgetStateProperty.all(failedColor),
+    foregroundColor: WidgetStateProperty.all(Colors.white),
+    shape: WidgetStateProperty.all(
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    ),
+    minimumSize: WidgetStateProperty.all(const Size(double.infinity, 48)),
+    elevation: WidgetStateProperty.all(0),
+  );
+}
+
 class DevicesAlert extends StatelessWidget {
   const DevicesAlert({
     super.key,
@@ -12,82 +49,94 @@ class DevicesAlert extends StatelessWidget {
 
   final List<Device> devices;
   final VoidCallback onDismiss;
-  final ValueChanged<int> onClick;
 
-  IconData _iconForType(String type) {
-    switch (type) {
-      case 'android':
-      case 'ios':
-        return Icons.phone_iphone_outlined;
-      case 'tv':
-        return Icons.tv_outlined;
-      case 'web':
-        return Icons.public_outlined;
-      default:
-        return Icons.computer_outlined;
-    }
-  }
+  /// Index of the device to remove, or `-1` to remove all devices.
+  final ValueChanged<int> onClick;
 
   @override
   Widget build(BuildContext context) {
+    final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
+      color: Colors.white,
+      fontWeight: FontWeight.w700,
+    );
+    final bodyStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
+      color: Colors.white,
+      fontWeight: FontWeight.w700,
+    );
+    final buttonTextStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
+      fontWeight: FontWeight.w600,
+      color: Colors.black,
+    );
+
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16),
-      backgroundColor: secondaryColor,
-      contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const Text(
-            'سقف مجاز استفاده',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'برای ورود به حساب کاربری خود باید از یکی از دستگاه های زیر خارج شوید',
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          for (int i = 0; i < devices.length; i++)
-            TextButton(
-              onPressed: () => onClick(i),
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Row(
-                    children: [
-                      Icon(_iconForType(devices[i].type), color: Colors.white),
-                      const SizedBox(width: 8),
-                      Expanded(
+      backgroundColor: const Color(0xFF2B2B2B),
+      contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+      content: SizedBox(
+        width: 420,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Stack(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: Text(
+                    'سقف مجاز استفاده',
+                    style: titleStyle,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Align(
+                  alignment: AlignmentDirectional.topEnd,
+                  child: IconButton(
+                    onPressed: onDismiss,
+                    icon: Icon(Icons.cancel_outlined, color: failedColor),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'برای ورود به حساب کاربری خود باید از یکی از دستگاه های زیر خارج شوید',
+              style: bodyStyle,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 48),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 320),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (var i = 0; i < devices.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 16),
+                      ElevatedButton(
+                        style: _deviceButtonStyle(context),
+                        onPressed: () => onClick(i),
                         child: Text(
                           devices[i].name,
-                          style: const TextStyle(color: Colors.white),
+                          textAlign: TextAlign.center,
+                          style: buttonTextStyle,
                         ),
                       ),
                     ],
-                  ),
+                  ],
                 ),
               ),
             ),
-          TextButton(
-            onPressed: () => onClick(-1),
-            child: SizedBox(
-              width: double.infinity,
+            const SizedBox(height: 16),
+            ElevatedButton(
+              style: _logoutAllButtonStyle(),
+              onPressed: () => onClick(-1),
               child: Text(
-                'خارج شدن از همه دستگاه ها',
-                style: TextStyle(color: failedColor),
+                'خروج از همه دستگاه ها',
                 textAlign: TextAlign.center,
+                style: buttonTextStyle?.copyWith(color: Colors.white),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -106,8 +155,8 @@ Future<void> showDevicesAlert(
         devices: devices,
         onDismiss: () => Navigator.of(context).pop(),
         onClick: (index) {
-          onClick(index);
           Navigator.of(context).pop();
+          onClick(index);
         },
       );
     },
