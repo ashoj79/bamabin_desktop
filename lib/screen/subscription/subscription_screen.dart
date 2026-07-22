@@ -92,9 +92,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             return current.feedbackMessage != null ||
                 (current.paymentUrl?.isNotEmpty ?? false);
           }
-          final feedbackChanged = current.feedbackMessage != null &&
+          final feedbackChanged =
+              current.feedbackMessage != null &&
               current.feedbackMessage != previous.feedbackMessage;
-          final paymentChanged = current.paymentUrl != null &&
+          final paymentChanged =
+              current.paymentUrl != null &&
               current.paymentUrl != previous.paymentUrl &&
               current.paymentUrl!.isNotEmpty;
           return feedbackChanged || paymentChanged;
@@ -116,9 +118,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           final message = state.feedbackMessage;
           if (message == null || message.isEmpty) return;
           showBamabinSnackbar(context, message);
-          context
-              .read<SubscriptionBloc>()
-              .add(SubscriptionClearFeedbackEvent());
+          context.read<SubscriptionBloc>().add(
+            SubscriptionClearFeedbackEvent(),
+          );
         },
         builder: (context, state) {
           if (state is SubscriptionLoading || state is SubscriptionInitial) {
@@ -130,21 +132,18 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    state.message,
-                    style: const TextStyle(color: _subMuted),
-                  ),
+                  Text(state.message, style: const TextStyle(color: _subMuted)),
                   const SizedBox(height: 16),
                   TextButton(
-                    onPressed: () => context
-                        .read<SubscriptionBloc>()
-                        .add(SubscriptionLoadEvent()),
+                    onPressed: () => context.read<SubscriptionBloc>().add(
+                      SubscriptionLoadEvent(),
+                    ),
                     child: const Text('تلاش مجدد'),
                   ),
                 ],
               ),
             );
-          } 
+          }
 
           if (state is! SubscriptionLoaded) {
             return const SizedBox.shrink();
@@ -180,10 +179,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                       const SizedBox(height: 6),
                       Text(
                         state.vipLabel,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: _subMuted,
-                        ),
+                        style: const TextStyle(fontSize: 14, color: _subMuted),
                       ),
                       const SizedBox(height: 22),
                       _DiscountRow(
@@ -191,10 +187,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                         isVerifying: state.isVerifyingDiscount,
                         isApplied: state.hasDiscount,
                         onApply: () => context.read<SubscriptionBloc>().add(
-                              SubscriptionApplyDiscountEvent(
-                                code: _discountController.text,
-                              ),
-                            ),
+                          SubscriptionApplyDiscountEvent(
+                            code: _discountController.text,
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 20),
                       if (state.plans.isEmpty)
@@ -213,25 +209,24 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                             style: TextStyle(color: _subMuted),
                           ),
                         )
-                      else
-                        ...[
-                          for (var i = 0; i < state.plans.length; i++) ...[
-                            if (i > 0) const SizedBox(height: 14),
-                            _PlanCard(
-                              plan: state.plans[i],
-                              selected: i == state.selectedIndex,
-                              codeDiscountPrice:
-                                  state.discountedPrices[state.plans[i].id],
-                              accentPrimary: i == 0 ? blueColor : _subAmber,
-                              accentSecondary: i == 0
-                                  ? desktopAccentDarkColor
-                                  : _subAmberEnd,
-                              onTap: () => context
-                                  .read<SubscriptionBloc>()
-                                  .add(SubscriptionSelectPlanEvent(index: i)),
+                      else ...[
+                        for (var i = 0; i < state.plans.length; i++) ...[
+                          if (i > 0) const SizedBox(height: 14),
+                          _PlanCard(
+                            plan: state.plans[i],
+                            selected: i == state.selectedIndex,
+                            codeDiscountPrice:
+                                state.discountedPrices[state.plans[i].id],
+                            accentPrimary: i == 0 ? blueColor : _subAmber,
+                            accentSecondary: i == 0
+                                ? desktopAccentDarkColor
+                                : _subAmberEnd,
+                            onTap: () => context.read<SubscriptionBloc>().add(
+                              SubscriptionSelectPlanEvent(index: i),
                             ),
-                          ],
+                          ),
                         ],
+                      ],
                       if (state.plans.isNotEmpty) ...[
                         const SizedBox(height: 24),
                         Align(
@@ -243,12 +238,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: blueColor,
                               foregroundColor: Colors.white,
-                              disabledBackgroundColor:
-                                  blueColor.withValues(alpha: 0.35),
+                              disabledBackgroundColor: blueColor.withValues(
+                                alpha: 0.35,
+                              ),
                               elevation: 0,
                               minimumSize: const Size(220, 48),
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 28),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 28,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -309,10 +306,7 @@ class _Header extends StatelessWidget {
           onPressed: onBack,
           style: TextButton.styleFrom(
             foregroundColor: _subLabel,
-            textStyle: const TextStyle(
-              fontFamily: 'dana',
-              fontSize: 14.5,
-            ),
+            textStyle: const TextStyle(fontFamily: 'dana', fontSize: 14.5),
           ),
           child: const Row(
             mainAxisSize: MainAxisSize.min,
@@ -471,9 +465,7 @@ class _PlanCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: selected
-              ? blueColor
-              : Colors.white.withValues(alpha: 0.06),
+          color: selected ? blueColor : Colors.white.withValues(alpha: 0.06),
           width: selected ? 1.5 : 1,
         ),
       ),
@@ -497,10 +489,7 @@ class _PlanCard extends StatelessWidget {
                     children: [
                       Text(
                         '✦',
-                        style: TextStyle(
-                          color: accentPrimary,
-                          fontSize: 15,
-                        ),
+                        style: TextStyle(color: accentPrimary, fontSize: 15),
                       ),
                       const SizedBox(width: 6),
                       Container(
@@ -624,10 +613,7 @@ class _PriceBadge extends StatelessWidget {
 }
 
 class _GatewayAlert extends StatelessWidget {
-  const _GatewayAlert({
-    required this.onDismiss,
-    required this.onGatewayClick,
-  });
+  const _GatewayAlert({required this.onDismiss, required this.onGatewayClick});
 
   final VoidCallback onDismiss;
   final void Function(String gateway) onGatewayClick;
@@ -709,89 +695,87 @@ class _GatewayAlertBodyState extends State<_GatewayAlertBody> {
                     ),
                   )
                 : widget.gateways.isEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 24),
-                        child: Text(
-                          'درگاهی یافت نشد',
-                          style: TextStyle(color: Colors.white),
+                ? const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Text(
+                      'درگاهی یافت نشد',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'درگاه پرداخت را انتخاب کنید',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: blueColor,
                         ),
-                      )
-                    : Column(
-                        mainAxisSize: MainAxisSize.min,
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
                         children: [
-                          Text(
-                            'درگاه پرداخت را انتخاب کنید',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: blueColor,
+                          Expanded(
+                            child: _GatewayTypeButton(
+                              label: 'درگاه ریالی',
+                              selected: _gatewayType == 'irr',
+                              isStart: true,
+                              onTap: () => setState(() => _gatewayType = 'irr'),
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _GatewayTypeButton(
-                                  label: 'درگاه ریالی',
-                                  selected: _gatewayType == 'irr',
-                                  isStart: true,
-                                  onTap: () =>
-                                      setState(() => _gatewayType = 'irr'),
-                                ),
-                              ),
-                              Expanded(
-                                child: _GatewayTypeButton(
-                                  label: 'درگاه دلاری',
-                                  selected: _gatewayType == 'usd',
-                                  isStart: false,
-                                  onTap: () =>
-                                      setState(() => _gatewayType = 'usd'),
-                                ),
-                              ),
-                            ],
+                          Expanded(
+                            child: _GatewayTypeButton(
+                              label: 'درگاه دلاری',
+                              selected: _gatewayType == 'usd',
+                              isStart: false,
+                              onTap: () => setState(() => _gatewayType = 'usd'),
+                            ),
                           ),
-                          const SizedBox(height: 16),
-                          if (_filteredGateways.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.only(bottom: 12),
-                              child: Text(
-                                'درگاهی در این دسته نیست',
-                                style: TextStyle(color: Colors.white70),
-                              ),
-                            )
-                          else
-                            for (final gateway in _filteredGateways)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    onTap: () =>
-                                        widget.onGatewayClick(gateway.slug),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      if (_filteredGateways.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            'درگاهی در این دسته نیست',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        )
+                      else
+                        for (final gateway in _filteredGateways)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () =>
+                                    widget.onGatewayClick(gateway.slug),
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(8),
-                                    child: Container(
-                                      width: double.infinity,
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.3,
-                                          ),
-                                        ),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: CachedNetworkImage(
-                                        imageUrl: gateway.icon,
-                                        width: 32,
-                                        height: 32,
+                                    border: Border.all(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.3,
                                       ),
                                     ),
                                   ),
+                                  alignment: Alignment.center,
+                                  child: CachedNetworkImage(
+                                    imageUrl: gateway.icon,
+                                    width: 32,
+                                    height: 32,
+                                  ),
                                 ),
                               ),
-                        ],
-                      ),
+                            ),
+                          ),
+                    ],
+                  ),
           ),
         ),
       ),
@@ -834,9 +818,7 @@ class _GatewayTypeButton extends StatelessWidget {
           child: Center(
             child: Text(
               label,
-              style: TextStyle(
-                color: selected ? Colors.black : Colors.white,
-              ),
+              style: TextStyle(color: selected ? Colors.black : Colors.white),
             ),
           ),
         ),
