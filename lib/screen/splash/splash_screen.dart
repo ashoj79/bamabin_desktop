@@ -4,6 +4,7 @@ import 'package:bamabin_desktop/core/routes.dart';
 import 'package:bamabin_desktop/core/widgets/dialogs.dart';
 import 'package:bamabin_desktop/core/widgets/loading_widget.dart';
 import 'package:bamabin_desktop/screen/splash/bloc/splash_bloc.dart';
+import 'package:bamabin_desktop/utils/deep_link_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -38,6 +39,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
         if (!state.appVersion.needUpdate) {
           context.go(Routes.main);
+          DeepLinkHandler.instance.markReady();
           return;
         }
 

@@ -13,15 +13,24 @@ import 'package:bamabin_desktop/screen/profile/profile_screen.dart';
 import 'package:bamabin_desktop/screen/search/bloc/search_bloc.dart';
 import 'package:bamabin_desktop/screen/search/search_screen.dart';
 import 'package:bamabin_desktop/screen/splash/splash_screen.dart';
+import 'package:bamabin_desktop/screen/subscription/bloc/subscription_bloc.dart';
+import 'package:bamabin_desktop/screen/subscription/subscription_screen.dart';
 import 'package:bamabin_desktop/utils/di.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+String _lastAppLocation = Routes.splash;
+
 final GoRouter router = GoRouter(
   initialLocation: Routes.splash,
   redirect: (context, state) {
-    if (state.uri.scheme == 'bamabin') {
-      return Routes.splash;
+    // Deep links are handled by DeepLinkHandler; keep the current screen.
+    if (state.uri.scheme.toLowerCase() == 'bamabin') {
+      return _lastAppLocation;
+    }
+    final matched = state.matchedLocation;
+    if (matched.isNotEmpty) {
+      _lastAppLocation = matched;
     }
     return null;
   },
@@ -50,8 +59,10 @@ final GoRouter router = GoRouter(
         ),
         GoRoute(
           path: Routes.subscription,
-          builder: (context, state) =>
-              const MainPlaceholderPage(title: 'خرید اشتراک'),
+          builder: (context, state) => BlocProvider(
+            create: (_) => locator<SubscriptionBloc>(),
+            child: const SubscriptionScreen(),
+          ),
         ),
         GoRoute(
           path: Routes.profile,

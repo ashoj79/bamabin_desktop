@@ -5,6 +5,7 @@ import 'package:bamabin_desktop/data/remote/model/app/department.dart';
 import 'package:bamabin_desktop/data/remote/model/app/gateway.dart';
 import 'package:bamabin_desktop/data/remote/model/app/notification.dart';
 import 'package:bamabin_desktop/data/remote/model/app/plan.dart';
+import 'package:bamabin_desktop/data/remote/model/app/plan_discount_price.dart';
 import 'package:bamabin_desktop/data/remote/model/app/startup_data.dart';
 import 'package:bamabin_desktop/data/local/shared_preference_helper.dart';
 import 'package:bamabin_desktop/data/remote/url_helper.dart';
@@ -140,8 +141,10 @@ class AppRepository {
     }
   }
 
-  Future<DataState<int>> verifyDiscount(int planId, String code) async {
-    final response = await _appApiService.verifyDiscount(planId, code);
+  Future<DataState<List<PlanDiscountPrice>>> verifyDiscountForAllPlans(
+    String code,
+  ) async {
+    final response = await _appApiService.verifyDiscountForAllPlans(code);
     if (response.status) {
       return DataSuccess(response.data);
     } else {

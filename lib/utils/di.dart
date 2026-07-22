@@ -20,6 +20,7 @@ import 'package:bamabin_desktop/screen/search/bloc/search_bloc.dart';
 import 'package:bamabin_desktop/screen/post_details/bloc/post_details_bloc.dart';
 import 'package:bamabin_desktop/screen/auth/bloc/auth_bloc.dart';
 import 'package:bamabin_desktop/screen/profile/bloc/profile_bloc.dart';
+import 'package:bamabin_desktop/screen/subscription/bloc/subscription_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bamabin_desktop/config/dio_helper.dart';
 import 'package:get_it/get_it.dart';
@@ -82,5 +83,8 @@ Future<void> setupLocator() async {
   locator.registerFactory<AuthBloc>(() => AuthBloc(locator()));
   locator.registerFactory<ProfileBloc>(
     () => ProfileBloc(locator(), locator()),
+  );
+  locator.registerFactory<SubscriptionBloc>(
+    () => SubscriptionBloc(locator()),
   );
 }

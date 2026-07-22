@@ -487,6 +487,10 @@ class UserRepository {
     return DataSuccess(response.data);
   }
 
+  Future<bool> refreshUserData() async {
+    return _getUserData();
+  }
+
   Future<bool> _getUserData() async {
     final response = await _userApiService.getUserData();
     if (!response.status) {

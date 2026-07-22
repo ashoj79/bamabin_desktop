@@ -3,6 +3,7 @@ import 'package:bamabin_desktop/data/remote/model/app/department.dart';
 import 'package:bamabin_desktop/data/remote/model/app/gateway.dart';
 import 'package:bamabin_desktop/data/remote/model/app/notification.dart';
 import 'package:bamabin_desktop/data/remote/model/app/plan.dart';
+import 'package:bamabin_desktop/data/remote/model/app/plan_discount_price.dart';
 import 'package:bamabin_desktop/data/remote/model/app/startup_data.dart';
 import 'package:bamabin_desktop/data/remote/model/api_response.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/search_taxonomies.dart';
@@ -66,11 +67,18 @@ class AppApiService extends BaseApiService {
     );
   }
 
-  Future<ApiResponse<int>> verifyDiscount(int planId, String code) async {
-    return await post(
-      '/subscription/discount',
-      (json) => json['price'],
-      data: {'plan_id': planId, 'discount_code': code},
+  Future<ApiResponse<List<PlanDiscountPrice>>> verifyDiscountForAllPlans(
+    String code,
+  ) async {
+    return await get(
+      '/subscription/discount_for_all_plans',
+      (json) => List<PlanDiscountPrice>.generate(
+        (json as List).length,
+        (index) => PlanDiscountPrice.fromJson(
+          json[index] as Map<String, dynamic>,
+        ),
+      ),
+      queryParameters: {'discount_code': code},
     );
   }
 

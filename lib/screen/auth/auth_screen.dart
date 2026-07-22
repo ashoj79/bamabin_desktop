@@ -10,6 +10,7 @@ import 'package:bamabin_desktop/core/widgets/dialogs.dart';
 import 'package:bamabin_desktop/core/widgets/loading_widget.dart';
 import 'package:bamabin_desktop/data/remote/url_helper.dart';
 import 'package:bamabin_desktop/screen/auth/bloc/auth_bloc.dart';
+import 'package:bamabin_desktop/utils/deep_link_handler.dart';
 import 'package:bamabin_desktop/utils/socket_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -329,6 +330,7 @@ class _AuthScreenState extends State<AuthScreen> {
           _startOtpResendCooldown();
         } else if (state is AuthSuccess) {
           context.go(Routes.main);
+          DeepLinkHandler.instance.markReady();
         } else if (state is AuthDeviceLimit) {
           showDevicesAlert(
             context,
