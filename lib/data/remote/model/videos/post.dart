@@ -10,6 +10,7 @@ class Post {
   final bool hasAudio;
   final List<int> genresId;
   final List<int> years;
+  final String summary;
 
   Post({
     required this.id,
@@ -21,6 +22,7 @@ class Post {
     required this.hasAudio,
     required this.genresId,
     required this.years,
+    this.summary = '',
   });
 
   String get releaseYear => (years.isNotEmpty ? years[0] : 0).toString();
@@ -36,6 +38,10 @@ class Post {
     genresId:
         (json['genres_id'] as List?)?.map((e) => e as int).toList() ?? [],
     years: (json['years'] as List?)?.map((e) => e as int).toList() ?? [],
+    summary:
+        json['summary']?.toString() ??
+        json['fa_plot_movie']?.toString() ??
+        '',
   );
 
   Map<String, dynamic> toJson() => {
@@ -48,6 +54,7 @@ class Post {
     'has_dubbed': hasAudio,
     'genres_id': genresId,
     'years': years,
+    'summary': summary,
   };
 
   String toJsonEncoded() => Uri.encodeComponent(jsonEncode(toJson()));

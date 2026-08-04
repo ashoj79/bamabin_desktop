@@ -2,6 +2,7 @@ import 'package:bamabin_desktop/config/color.dart';
 import 'package:bamabin_desktop/data/local/temp_db.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/home_sections.dart';
 import 'package:bamabin_desktop/screen/home/widgets/home_list_section.dart';
+import 'package:bamabin_desktop/screen/home/widgets/home_single_section.dart';
 import 'package:bamabin_desktop/screen/home/widgets/home_slider.dart';
 import 'package:flutter/material.dart';
 
@@ -15,14 +16,16 @@ class HomeScreen extends StatelessWidget {
       child: ValueListenableBuilder(
         valueListenable: TempDb.homeSections,
         builder: (context, sections, _) {
-          final slider = sections.whereType<SliderSection>().firstOrNull;
-          final lists = sections.whereType<ListSection>().toList();
-
           return ListView(
             children: [
-              if (slider != null && slider.posts.isNotEmpty)
-                HomeSlider(posts: slider.posts),
-              for (final section in lists) HomeListSection(section: section),
+              for (final section in sections) ...[
+                if (section is SliderSection && section.posts.isNotEmpty)
+                  HomeSlider(posts: section.posts)
+                else if (section is SingleSection && section.post != null)
+                  HomeSingleSection(section: section)
+                else if (section is ListSection)
+                  HomeListSection(section: section),
+              ],
               const SizedBox(height: 24),
             ],
           );

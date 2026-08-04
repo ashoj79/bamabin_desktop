@@ -5,6 +5,7 @@ import 'package:bamabin_desktop/core/routes.dart';
 import 'package:bamabin_desktop/core/widgets/bamabin_snackbar.dart';
 import 'package:bamabin_desktop/core/widgets/dialogs.dart';
 import 'package:bamabin_desktop/core/widgets/loading_widget.dart';
+import 'package:bamabin_desktop/core/widgets/view_all_button.dart';
 import 'package:bamabin_desktop/core/widgets/watching_card.dart';
 import 'package:bamabin_desktop/data/local/temp_db.dart';
 import 'package:bamabin_desktop/data/remote/model/user/dashboard.dart';
@@ -452,6 +453,16 @@ class _ProfileHero extends StatelessWidget {
                         ),
                       ),
                     ],
+                    if (dashboard.registeredAt.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        'تاریخ ثبت نام: ${dashboard.registeredAt}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: _profileMuted,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -682,16 +693,8 @@ class _OverviewTab extends StatelessWidget {
             ),
             const Spacer(),
             if (!loaded.isPlayStatusLoading)
-              TextButton(
-                onPressed: () => context.go(Routes.watchStatusPosts),
-                style: TextButton.styleFrom(
-                  foregroundColor: blueColor,
-                  textStyle: const TextStyle(
-                    fontFamily: 'dana',
-                    fontSize: 13.5,
-                  ),
-                ),
-                child: const Text('مشاهده همه ←'),
+              ViewAllButton(
+                onPressed: () => context.push(Routes.watchStatusPosts),
               ),
           ],
         ),

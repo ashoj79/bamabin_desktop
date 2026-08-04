@@ -20,3 +20,21 @@ final class SubmitCommentEvent extends PostDetailsEvent {
   final String content;
   final bool hasSpoil;
 }
+
+final class LikePostEvent extends PostDetailsEvent {
+  LikePostEvent({
+    required this.postId,
+    required this.action,
+  });
+
+  final int postId;
+
+  /// `like` or `dislike`
+  final String action;
+}
+
+final class ToggleWatchlistEvent extends PostDetailsEvent {
+  ToggleWatchlistEvent({required this.postId});
+
+  final int postId;
+}

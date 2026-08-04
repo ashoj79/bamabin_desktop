@@ -6,6 +6,7 @@ import 'package:bamabin_desktop/data/remote/model/videos/slider_post.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 class HomeSlider extends StatefulWidget {
@@ -52,31 +53,28 @@ class _HomeSliderState extends State<HomeSlider> {
           ),
           if (widget.posts.length > 1) ...[
             Positioned(
-              left: 14,
-              top: 0,
-              bottom: 0,
-              child: Center(
-                child: _SliderArrowButton(
-                  icon: Icons.chevron_right,
-                  onTap: () => _carouselController.nextPage(
-                    duration: const Duration(milliseconds: 400),
-                    curve: Curves.easeInOut,
+              left: 44,
+              bottom: 52,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                textDirection: TextDirection.ltr,
+                children: [
+                  _SliderArrowButton(
+                    asset: 'assets/img/slider_arrow_left.svg',
+                    onTap: () => _carouselController.previousPage(
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeInOut,
+                    ),
                   ),
-                ),
-              ),
-            ),
-            Positioned(
-              right: 14,
-              top: 0,
-              bottom: 0,
-              child: Center(
-                child: _SliderArrowButton(
-                  icon: Icons.chevron_left,
-                  onTap: () => _carouselController.previousPage(
-                    duration: const Duration(milliseconds: 400),
-                    curve: Curves.easeInOut,
+                  const SizedBox(width: 8),
+                  _SliderArrowButton(
+                    asset: 'assets/img/slider_arrow_right.svg',
+                    onTap: () => _carouselController.nextPage(
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeInOut,
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
             Positioned(
@@ -119,11 +117,11 @@ class _HomeSliderItem extends StatelessWidget {
 
   Post get post => sliderPost.post;
 
-  String get _displayTitle =>
-      post.faTitle.isNotEmpty ? post.faTitle : post.title;
-
   String get _englishTitle =>
-      post.faTitle.isNotEmpty && post.title.isNotEmpty ? post.title : '';
+      post.title.isNotEmpty ? post.title : post.faTitle;
+
+  String get _persianTitle =>
+      post.title.isNotEmpty && post.faTitle.isNotEmpty ? post.faTitle : '';
 
   List<String> get _genreNames {
     if (post.genresId.isEmpty || TempDb.genres.isEmpty) return const [];
@@ -136,6 +134,25 @@ class _HomeSliderItem extends StatelessWidget {
         .toList();
   }
 
+  Widget _metaTag(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.48)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: Colors.white.withValues(alpha: 0.85),
+        ),
+      ),
+    );
+  }
+
   List<Widget> _metaChildren() {
     final children = <Widget>[];
 
@@ -143,10 +160,13 @@ class _HomeSliderItem extends StatelessWidget {
       if (children.isEmpty) return;
       children.add(
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Text(
             '·',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.13)),
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.white.withValues(alpha: 0.48),
+            ),
           ),
         ),
       );
@@ -200,25 +220,12 @@ class _HomeSliderItem extends StatelessWidget {
       );
     }
 
+    addDot();
+    children.add(_metaTag('زیرنویس فارسی'));
+
     if (post.hasAudio) {
       addDot();
-      children.add(
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          ),
-          child: Text(
-            'دوبله',
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.white.withValues(alpha: 0.33),
-            ),
-          ),
-        ),
-      );
+      children.add(_metaTag('دوبله فارسی'));
     }
 
     return children;
@@ -306,7 +313,7 @@ class _HomeSliderItem extends StatelessWidget {
                   ),
                 if (_genreNames.isNotEmpty) const SizedBox(height: 10),
                 Text(
-                  _displayTitle,
+                  _englishTitle,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -323,15 +330,16 @@ class _HomeSliderItem extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (_englishTitle.isNotEmpty) ...[
-                  const SizedBox(height: 16),
+                if (_persianTitle.isNotEmpty) ...[
+                  const SizedBox(height: 12),
                   Text(
-                    _englishTitle,
+                    _persianTitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white.withValues(alpha: 0.27),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white.withValues(alpha: 0.48),
                     ),
                   ),
                 ],
@@ -348,15 +356,16 @@ class _HomeSliderItem extends StatelessWidget {
                 if (sliderPost.summary.isNotEmpty) ...[
                   const SizedBox(height: 10),
                   ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 400),
+                    constraints: const BoxConstraints(maxWidth: 500),
                     child: Text(
                       sliderPost.summary,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.justify,
                       style: TextStyle(
-                        fontSize: 13.5,
-                        height: 1.85,
-                        color: Colors.white.withValues(alpha: 0.53),
+                        fontSize: 16,
+                        height: 22 / 16,
+                        color: Colors.white.withValues(alpha: 0.7),
                       ),
                     ),
                   ),
@@ -423,25 +432,29 @@ class _HomeSliderItem extends StatelessWidget {
 }
 
 class _SliderArrowButton extends StatelessWidget {
-  const _SliderArrowButton({required this.icon, required this.onTap});
+  const _SliderArrowButton({required this.asset, required this.onTap});
 
-  final IconData icon;
+  final String asset;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.black.withValues(alpha: 0.4),
-      shape: const CircleBorder(
-        side: BorderSide(color: Color(0x1AFFFFFF)),
-      ),
+      color: Colors.white.withValues(alpha: 0.09),
+      shape: const CircleBorder(),
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: onTap,
         child: SizedBox(
-          width: 34,
-          height: 34,
-          child: Icon(icon, size: 18, color: const Color(0xFFCCCCCC)),
+          width: 45,
+          height: 45,
+          child: Center(
+            child: SvgPicture.asset(
+              asset,
+              width: 20,
+              height: 20,
+            ),
+          ),
         ),
       ),
     );

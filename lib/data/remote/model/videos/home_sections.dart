@@ -77,6 +77,10 @@ Post _parsePost(Map<String, dynamic> postData) {
     hasAudio: postData['has_dubbed'] ?? false,
     genresId: genresId,
     years: years,
+    summary:
+        postData['summary']?.toString() ??
+        postData['fa_plot_movie']?.toString() ??
+        '',
   );
 }
 

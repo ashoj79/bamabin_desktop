@@ -1,6 +1,7 @@
 import 'package:bamabin_desktop/config/color.dart';
 import 'package:bamabin_desktop/core/routes.dart';
 import 'package:bamabin_desktop/core/widgets/post_widget.dart';
+import 'package:bamabin_desktop/core/widgets/view_all_button.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/home_sections.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -62,26 +63,12 @@ class HomeListSection extends StatelessWidget {
                     ),
                   ),
                 ),
-                TextButton(
-                  onPressed: () => _onMoreClick(context),
-                  style: TextButton.styleFrom(
-                    foregroundColor: blueColor,
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    textStyle: const TextStyle(
-                      fontFamily: 'dana',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  child: const Text('مشاهده همه ←'),
-                ),
+                ViewAllButton(onPressed: () => _onMoreClick(context)),
               ],
             ),
           ),
           SizedBox(
-            height: 278,
+            height: 292,
             child: ScrollConfiguration(
               behavior: ScrollConfiguration.of(context).copyWith(
                 dragDevices: {

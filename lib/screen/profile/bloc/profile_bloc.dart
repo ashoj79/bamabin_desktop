@@ -199,6 +199,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
                 vipTime: dashboard.vipTime,
                 vipTimePercentage: dashboard.vipTimePercentage,
                 vipEndDate: dashboard.vipEndDate,
+                registeredAt: dashboard.registeredAt,
                 requestsCount: dashboard.requestsCount,
                 listsCount: dashboard.listsCount,
                 commentsCount: dashboard.commentsCount,

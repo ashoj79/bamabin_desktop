@@ -1,4 +1,5 @@
 import 'package:bamabin_desktop/data/remote/model/comment/comment.dart';
+import 'package:bamabin_desktop/data/remote/model/videos/like_info.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/post.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/post_details.dart';
 import 'package:bamabin_desktop/repository/video_repository.dart';
@@ -13,6 +14,8 @@ class PostDetailsBloc extends Bloc<PostDetailsEvent, PostDetailsState> {
   PostDetailsBloc(this._videoRepository) : super(PostDetailsInitial()) {
     on<LoadPostDetailsEvent>(_onLoadPostDetails);
     on<SubmitCommentEvent>(_onSubmitComment);
+    on<LikePostEvent>(_onLikePost);
+    on<ToggleWatchlistEvent>(_onToggleWatchlist);
   }
 
   final VideoRepository _videoRepository;
@@ -108,4 +111,95 @@ class PostDetailsBloc extends Bloc<PostDetailsEvent, PostDetailsState> {
       );
     }
   }
+
+  Future<void> _onLikePost(
+    LikePostEvent event,
+    Emitter<PostDetailsState> emit,
+  ) async {
+    final current = state;
+    if (current is! PostDetailsViewState) return;
+    if (current.likeActionLoading != null) return;
+    if (current.details == null) return;
+
+    emit(
+      current.copyWith(
+        likeActionLoading: event.action,
+        clearLikeError: true,
+      ),
+    );
+
+    final response = await _videoRepository.likePost(
+      event.postId,
+      event.action,
+    );
+
+    final latest = state;
+    if (latest is! PostDetailsViewState) return;
+
+    if (response is DataSuccess<LikeInfo>) {
+      final details = latest.details!;
+      details.likeInfo = response.data;
+      details.userRate = event.action;
+      emit(
+        latest.copyWith(
+          details: details,
+          clearLikeActionLoading: true,
+        ),
+      );
+    } else {
+      emit(
+        latest.copyWith(
+          clearLikeActionLoading: true,
+          likeError: response.errorMessage,
+        ),
+      );
+    }
+  }
+
+  Future<void> _onToggleWatchlist(
+    ToggleWatchlistEvent event,
+    Emitter<PostDetailsState> emit,
+  ) async {
+    final current = state;
+    if (current is! PostDetailsViewState) return;
+    if (current.isWatchlistLoading) return;
+    if (current.details == null) return;
+
+    final currentlyInList = current.details!.isInWatchlist;
+    final action = currentlyInList ? 'remove' : 'add';
+
+    emit(
+      current.copyWith(
+        isWatchlistLoading: true,
+        clearWatchlistError: true,
+      ),
+    );
+
+    final response = await _videoRepository.updateWatchList(
+      event.postId,
+      action,
+    );
+
+    final latest = state;
+    if (latest is! PostDetailsViewState) return;
+
+    if (response is DataSuccess) {
+      final details = latest.details!;
+      details.isInWatchlist = !currentlyInList;
+      emit(
+        latest.copyWith(
+          details: details,
+          isWatchlistLoading: false,
+        ),
+      );
+    } else {
+      emit(
+        latest.copyWith(
+          isWatchlistLoading: false,
+          watchlistError: response.errorMessage,
+        ),
+      );
+    }
+  }
 }
+

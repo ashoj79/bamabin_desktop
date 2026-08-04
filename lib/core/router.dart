@@ -15,6 +15,8 @@ import 'package:bamabin_desktop/screen/search/search_screen.dart';
 import 'package:bamabin_desktop/screen/splash/splash_screen.dart';
 import 'package:bamabin_desktop/screen/subscription/bloc/subscription_bloc.dart';
 import 'package:bamabin_desktop/screen/subscription/subscription_screen.dart';
+import 'package:bamabin_desktop/screen/watch_status/bloc/watch_status_bloc.dart';
+import 'package:bamabin_desktop/screen/watch_status/watch_status_screen.dart';
 import 'package:bamabin_desktop/utils/di.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -72,6 +74,13 @@ final GoRouter router = GoRouter(
           ),
         ),
         GoRoute(
+          path: Routes.watchStatusPosts,
+          builder: (context, state) => BlocProvider(
+            create: (_) => locator<WatchStatusBloc>(),
+            child: const WatchStatusScreen(),
+          ),
+        ),
+        GoRoute(
           path: Routes.notifications,
           builder: (context, state) =>
               const MainPlaceholderPage(title: 'اعلان‌ها'),
@@ -93,8 +102,8 @@ final GoRouter router = GoRouter(
           return const MainPlaceholderPage(title: 'جزئیات');
         }
         return BlocProvider(
-          create: (_) => locator<PostDetailsBloc>()
-            ..add(LoadPostDetailsEvent(extra)),
+          create: (_) =>
+              locator<PostDetailsBloc>()..add(LoadPostDetailsEvent(extra)),
           child: const PostDetailsScreen(),
         );
       },

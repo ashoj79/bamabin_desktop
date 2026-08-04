@@ -536,6 +536,7 @@ class PostDetails {
     hasAudio: hasDubbed,
     genresId: _genresId,
     years: years.map((e) => int.tryParse(e.name) ?? 0).toList(),
+    summary: summary,
   );
 
   static PostDetails fromSinglePost(SinglePost singlePost) => PostDetails(

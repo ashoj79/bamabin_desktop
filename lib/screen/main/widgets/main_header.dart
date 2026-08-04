@@ -3,6 +3,7 @@ import 'package:bamabin_desktop/core/routes.dart';
 import 'package:bamabin_desktop/data/local/temp_db.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 class MainHeader extends StatelessWidget {
@@ -42,7 +43,7 @@ class MainHeader extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _HeaderIconButton(
-                    icon: Icons.search,
+                    asset: 'assets/img/header_search.svg',
                     onTap: () => context.go(Routes.search),
                   ),
                   const SizedBox(width: 8),
@@ -53,13 +54,13 @@ class MainHeader extends StatelessWidget {
                         clipBehavior: Clip.none,
                         children: [
                           _HeaderIconButton(
-                            icon: Icons.notifications_outlined,
+                            asset: 'assets/img/header_bell.svg',
                             onTap: () => context.go(Routes.notifications),
                           ),
                           if (haveUnread)
                             Positioned(
-                              top: 6,
-                              left: 6,
+                              top: 10,
+                              left: 10,
                               child: Container(
                                 width: 7,
                                 height: 7,
@@ -178,22 +179,32 @@ class _HeaderNavButton extends StatelessWidget {
 }
 
 class _HeaderIconButton extends StatelessWidget {
-  const _HeaderIconButton({required this.icon, required this.onTap});
+  const _HeaderIconButton({required this.asset, required this.onTap});
 
-  final IconData icon;
+  final String asset;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 34,
-      height: 34,
-      child: IconButton(
-        onPressed: onTap,
-        padding: EdgeInsets.zero,
-        icon: Icon(icon, size: 17, color: desktopMutedColor),
-        style: IconButton.styleFrom(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    return Material(
+      color: Colors.white.withValues(alpha: 0.09),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: SizedBox(
+          width: 45,
+          height: 45,
+          child: Center(
+            child: SvgPicture.asset(
+              asset,
+              width: 20,
+              height: 20,
+            ),
+          ),
         ),
       ),
     );

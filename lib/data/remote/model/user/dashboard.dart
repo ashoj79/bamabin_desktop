@@ -4,6 +4,7 @@ class Dashboard {
   final int vipTime;
   final double vipTimePercentage;
   final String vipEndDate;
+  final String registeredAt;
   final int requestsCount;
   final int listsCount;
   final int commentsCount;
@@ -19,6 +20,7 @@ class Dashboard {
     required this.vipTime,
     required this.vipTimePercentage,
     required this.vipEndDate,
+    required this.registeredAt,
     required this.requestsCount,
     required this.listsCount,
     required this.commentsCount,
@@ -32,6 +34,7 @@ class Dashboard {
   factory Dashboard.fromJson(Map<String, dynamic> json) => Dashboard(
     specialDomain: json['special_domain'] ?? '',
     avatar: json['avatar'] ?? '',
+    registeredAt: json['registered_at'] ?? '',
     vipTime: _asInt(json['vip_time']),
     vipTimePercentage: _asDouble(json['vip_time_percentage']),
     vipEndDate: json['vip_end_date'] ?? '',
