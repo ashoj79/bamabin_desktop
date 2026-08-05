@@ -11,4 +11,14 @@ final class SearchQueryEvent extends SearchEvent {
   final String query;
 }
 
+final class SearchFiltersSubmitEvent extends SearchEvent {
+  SearchFiltersSubmitEvent({
+    required this.query,
+    required this.filters,
+  });
+
+  final String query;
+  final SearchFilters filters;
+}
+
 final class SearchLoadMoreEvent extends SearchEvent {}
