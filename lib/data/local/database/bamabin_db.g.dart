@@ -205,13 +205,26 @@ class _$WatchDao extends WatchDao {
   }
 
   @override
+  Future<void> deleteDuplicatesExcept(
+    int id,
+    int season,
+    int episode,
+    int keepPk,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+      'DELETE FROM WatchData WHERE id=?1 AND season=?2 AND episode=?3 AND pk!=?4',
+      arguments: [id, season, episode, keepPk],
+    );
+  }
+
+  @override
   Future<WatchData?> getData(
     int id,
     int season,
     int episode,
   ) async {
     return _queryAdapter.query(
-        'SELECT * FROM WatchData WHERE id=?1 AND season=?2 AND episode=?3',
+        'SELECT * FROM WatchData WHERE id=?1 AND season=?2 AND episode=?3 ORDER BY updatedAt DESC, pk DESC LIMIT 1',
         mapper: (Map<String, Object?> row) => WatchData(
             pk: row['pk'] as int?,
             id: row['id'] as int,

@@ -139,6 +139,7 @@ class _PostDetailsBody extends StatelessWidget {
         children: [
           PostDetailsHero(
             postId: preview.id,
+            data: details,
             heroUrl: _heroUrl,
             posterUrl: _posterUrl,
             genreNames: _genreNames,

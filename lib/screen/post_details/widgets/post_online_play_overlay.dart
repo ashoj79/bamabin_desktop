@@ -1,13 +1,17 @@
 import 'package:bamabin_desktop/config/color.dart';
+import 'package:bamabin_desktop/core/routes.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/post_details.dart';
+import 'package:bamabin_desktop/screen/player/player_screen.dart';
 import 'package:bamabin_desktop/screen/post_details/widgets/post_media_access_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:go_router/go_router.dart';
 
 Future<void> showPostOnlinePlayOverlay(
   BuildContext context, {
   required bool isSeries,
+  required String title,
+  PostDetails? data,
   MovieDownloadBox? movieDownloadBox,
   List<Season>? seasons,
 }) {
@@ -20,6 +24,8 @@ Future<void> showPostOnlinePlayOverlay(
     pageBuilder: (context, animation, secondaryAnimation) {
       return PostOnlinePlayOverlay(
         isSeries: isSeries,
+        title: title,
+        data: data,
         movieDownloadBox: movieDownloadBox,
         seasons: seasons ?? const [],
       );
@@ -47,11 +53,15 @@ class PostOnlinePlayOverlay extends StatefulWidget {
   const PostOnlinePlayOverlay({
     super.key,
     required this.isSeries,
+    required this.title,
+    this.data,
     this.movieDownloadBox,
     this.seasons = const [],
   });
 
   final bool isSeries;
+  final String title;
+  final PostDetails? data;
   final MovieDownloadBox? movieDownloadBox;
   final List<Season> seasons;
 
@@ -95,12 +105,31 @@ class _PostOnlinePlayOverlayState extends State<PostOnlinePlayOverlay> {
     ];
   }
 
-  Future<void> _playLink(String link) async {
+  Future<void> _openPlayer({
+    required String link,
+    required MovieType type,
+    required int season,
+    required int episode,
+  }) async {
     if (!await ensureMediaAccess(context, actionLabel: 'پخش آنلاین')) return;
+    if (!mounted) return;
     if (link.isEmpty) return;
-    final uri = Uri.tryParse(link);
-    if (uri == null) return;
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final data = widget.data;
+    if (data == null) return;
+
+    Navigator.of(context).pop();
+    context.push(
+      Routes.player,
+      extra: PlayerArgs(data: data, type: type, season: season, episode: episode),
+    );
+  }
+
+  MovieType _defaultTypeForSeason(Season season) {
+    final box = season.items;
+    if (box.dubbed.isNotEmpty) return MovieType.dubbed;
+    if (box.subtitle.isNotEmpty) return MovieType.subtitle;
+    if (box.nativeList.isNotEmpty) return MovieType.native_;
+    return MovieType.screen;
   }
 
   double _seriesSheetWidth(BuildContext context) {
@@ -274,7 +303,15 @@ class _PostOnlinePlayOverlayState extends State<PostOnlinePlayOverlay> {
                   _MoviePlayQualityItem(
                     info: sections[i].items[j],
                     type: sections[i].type,
-                    onPlay: () => _playLink(sections[i].items[j].link),
+                    onPlay: () {
+                      final info = sections[i].items[j];
+                      _openPlayer(
+                        link: info.link,
+                        type: sections[i].type,
+                        season: j,
+                        episode: -1,
+                      );
+                    },
                   ),
                 ],
               ],
@@ -296,7 +333,14 @@ class _PostOnlinePlayOverlayState extends State<PostOnlinePlayOverlay> {
           _SeasonEpisodeSection(
             seasonTitle: 'فصل ${widget.seasons[s].name}',
             episodes: _episodesFromSeason(widget.seasons[s]),
-            onPlayEpisode: _playLink,
+            onPlayEpisode: (episode) {
+              _openPlayer(
+                link: episode.link,
+                type: _defaultTypeForSeason(widget.seasons[s]),
+                season: s,
+                episode: episode.number - 1,
+              );
+            },
           ),
         ],
       ],
@@ -354,7 +398,7 @@ class _SeasonEpisodeSection extends StatelessWidget {
 
   final String seasonTitle;
   final List<_EpisodeOption> episodes;
-  final ValueChanged<String> onPlayEpisode;
+  final ValueChanged<_EpisodeOption> onPlayEpisode;
 
   @override
   Widget build(BuildContext context) {
@@ -402,7 +446,7 @@ class _SeasonEpisodeSection extends StatelessWidget {
               final episode = episodes[index];
               return _EpisodePlayButton(
                 label: 'قسمت ${episode.number}',
-                onTap: () => onPlayEpisode(episode.link),
+                onTap: () => onPlayEpisode(episode),
               );
             },
           ),

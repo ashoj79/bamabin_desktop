@@ -6,6 +6,8 @@ import 'package:bamabin_desktop/screen/categories/categories_screen.dart';
 import 'package:bamabin_desktop/screen/home/home_screen.dart';
 import 'package:bamabin_desktop/screen/main/main_placeholder_page.dart';
 import 'package:bamabin_desktop/screen/main/main_screen.dart';
+import 'package:bamabin_desktop/screen/player/bloc/player_bloc.dart';
+import 'package:bamabin_desktop/screen/player/player_screen.dart';
 import 'package:bamabin_desktop/screen/post_details/bloc/post_details_bloc.dart';
 import 'package:bamabin_desktop/screen/post_details/post_details_screen.dart';
 import 'package:bamabin_desktop/screen/profile/bloc/profile_bloc.dart';
@@ -105,6 +107,19 @@ final GoRouter router = GoRouter(
           create: (_) =>
               locator<PostDetailsBloc>()..add(LoadPostDetailsEvent(extra)),
           child: const PostDetailsScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: Routes.player,
+      builder: (context, state) {
+        final extra = state.extra;
+        if (extra is! PlayerArgs) {
+          return const MainPlaceholderPage(title: 'پخش‌کننده');
+        }
+        return BlocProvider(
+          create: (_) => locator<PlayerBloc>(),
+          child: PlayerScreen(args: extra),
         );
       },
     ),

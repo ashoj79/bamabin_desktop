@@ -13,7 +13,17 @@ abstract class WatchDao {
   Future<void> deleteWithId(int id);
 
   @Query(
-    'SELECT * FROM WatchData WHERE id=:id AND season=:season AND episode=:episode',
+    'DELETE FROM WatchData WHERE id=:id AND season=:season AND episode=:episode AND pk!=:keepPk',
+  )
+  Future<void> deleteDuplicatesExcept(
+    int id,
+    int season,
+    int episode,
+    int keepPk,
+  );
+
+  @Query(
+    'SELECT * FROM WatchData WHERE id=:id AND season=:season AND episode=:episode ORDER BY updatedAt DESC, pk DESC LIMIT 1',
   )
   Future<WatchData?> getData(int id, int season, int episode);
 

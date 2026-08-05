@@ -18,6 +18,7 @@ class PostDetailsHero extends StatelessWidget {
   const PostDetailsHero({
     super.key,
     required this.postId,
+    this.data,
     required this.heroUrl,
     required this.posterUrl,
     required this.genreNames,
@@ -40,6 +41,7 @@ class PostDetailsHero extends StatelessWidget {
   });
 
   final int postId;
+  final PostDetails? data;
   final String heroUrl;
   final String posterUrl;
   final List<String> genreNames;
@@ -89,6 +91,7 @@ class PostDetailsHero extends StatelessWidget {
                 Expanded(
                   child: _HeroContent(
                     postId: postId,
+                    data: data,
                     genreNames: genreNames,
                     mainTitle: mainTitle,
                     subTitle: subTitle,
@@ -447,6 +450,7 @@ class _HeroPoster extends StatelessWidget {
 class _HeroContent extends StatelessWidget {
   const _HeroContent({
     required this.postId,
+    this.data,
     required this.genreNames,
     required this.mainTitle,
     required this.subTitle,
@@ -467,6 +471,7 @@ class _HeroContent extends StatelessWidget {
   });
 
   final int postId;
+  final PostDetails? data;
   final List<String> genreNames;
   final String mainTitle;
   final String subTitle;
@@ -563,6 +568,8 @@ class _HeroContent extends StatelessWidget {
         const SizedBox(height: 12),
         _HeroActionRow(
           postId: postId,
+          data: data,
+          title: mainTitle,
           isLoading: isDetailsLoading,
           isInWatchlist: isInWatchlist,
           isWatchlistLoading: isWatchlistLoading,
@@ -894,6 +901,8 @@ class _VoteChip extends StatelessWidget {
 class _HeroActionRow extends StatelessWidget {
   const _HeroActionRow({
     required this.postId,
+    this.data,
+    required this.title,
     required this.isLoading,
     required this.isInWatchlist,
     required this.isWatchlistLoading,
@@ -903,6 +912,8 @@ class _HeroActionRow extends StatelessWidget {
   });
 
   final int postId;
+  final PostDetails? data;
+  final String title;
   final bool isLoading;
   final bool isInWatchlist;
   final bool isWatchlistLoading;
@@ -919,10 +930,13 @@ class _HeroActionRow extends StatelessWidget {
     );
   }
 
-  void _openEpisodeList(BuildContext context) {
+  void _openOnlinePlay(BuildContext context) {
     showPostOnlinePlayOverlay(
       context,
-      isSeries: true,
+      data: data,
+      isSeries: isSeries,
+      title: title,
+      movieDownloadBox: movieDownloadBox,
       seasons: seasons,
     );
   }
@@ -969,13 +983,13 @@ class _HeroActionRow extends StatelessWidget {
         _PrimaryHeroButton(
           label: 'تماشای آنلاین',
           svgAsset: 'assets/img/hero_play_circle.svg',
-          onTap: () {},
+          onTap: () => _openOnlinePlay(context),
         ),
         if (isSeries)
           _SecondaryHeroButton(
             label: 'لیست قسمت ها',
             svgAsset: 'assets/img/hero_video_library.svg',
-            onTap: () => _openEpisodeList(context),
+            onTap: () => _openOnlinePlay(context),
           ),
         _SecondaryHeroButton(
           label: 'دانلود',

@@ -41,11 +41,36 @@ class VideoRepository {
   }
 
   Future<void> saveWatchData(WatchData data) async {
-    await _watchDao.saveOrUpdate(
-      data
-        ..updatedAt = DateTime.now().millisecondsSinceEpoch
-        ..isSavedRemotely = false,
-    );
+    data
+      ..updatedAt = DateTime.now().millisecondsSinceEpoch
+      ..isSavedRemotely = false;
+
+    final existing = await _watchDao.getData(data.id, data.season, data.episode);
+    if (existing?.pk != null) {
+      final updated = WatchData(
+        pk: existing!.pk,
+        id: data.id,
+        type: data.type,
+        quality: data.quality,
+        qualityCode: data.qualityCode,
+        time: data.time,
+        duration: data.duration,
+        season: data.season,
+        episode: data.episode,
+        audioTrack: data.audioTrack,
+        subtitleTrack: data.subtitleTrack,
+        updatedAt: data.updatedAt,
+      )..isSavedRemotely = data.isSavedRemotely;
+      await _watchDao.update(updated);
+      await _watchDao.deleteDuplicatesExcept(
+        data.id,
+        data.season,
+        data.episode,
+        existing.pk!,
+      );
+    } else {
+      await _watchDao.saveOrUpdate(data);
+    }
   }
 
   Future<void> saveWatchStatusRemotely(
