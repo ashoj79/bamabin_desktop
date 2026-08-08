@@ -13,8 +13,11 @@ import 'package:bamabin_desktop/data/remote/api_service/video_api_service.dart';
 import 'package:bamabin_desktop/repository/ticket_repository.dart';
 import 'package:bamabin_desktop/repository/url_repository.dart';
 import 'package:bamabin_desktop/repository/app_repository.dart';
+import 'package:bamabin_desktop/repository/download_repository.dart';
 import 'package:bamabin_desktop/repository/video_repository.dart';
 import 'package:bamabin_desktop/repository/user_repository.dart';
+import 'package:bamabin_desktop/screen/download_manager/bloc/download_manager_bloc.dart';
+import 'package:bamabin_desktop/screen/download_manager/bloc/download_manager_event.dart';
 import 'package:bamabin_desktop/screen/splash/bloc/splash_bloc.dart';
 import 'package:bamabin_desktop/screen/search/bloc/search_bloc.dart';
 import 'package:bamabin_desktop/screen/post_details/bloc/post_details_bloc.dart';
@@ -23,6 +26,7 @@ import 'package:bamabin_desktop/screen/profile/bloc/profile_bloc.dart';
 import 'package:bamabin_desktop/screen/subscription/bloc/subscription_bloc.dart';
 import 'package:bamabin_desktop/screen/watch_status/bloc/watch_status_bloc.dart';
 import 'package:bamabin_desktop/screen/player/bloc/player_bloc.dart';
+import 'package:bamabin_desktop/screen/top250/bloc/top250_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bamabin_desktop/config/dio_helper.dart';
 import 'package:get_it/get_it.dart';
@@ -73,10 +77,14 @@ Future<void> setupLocator() async {
   );
   locator.registerSingleton<TicketRepository>(TicketRepository(locator()));
   locator.registerSingleton<UrlRepository>(UrlRepository(locator(), locator()));
+  locator.registerSingleton<DownloadRepository>(DownloadRepository());
 
   // Blocs
   locator.registerSingleton<SplashBloc>(
     SplashBloc(locator(), locator(), locator()),
+  );
+  locator.registerSingleton<DownloadManagerBloc>(
+    DownloadManagerBloc(locator())..add(const DownloadManagerStarted()),
   );
   locator.registerFactory<SearchBloc>(() => SearchBloc(locator()));
   locator.registerFactory<PostDetailsBloc>(
@@ -91,6 +99,9 @@ Future<void> setupLocator() async {
   );
   locator.registerFactory<WatchStatusBloc>(
     () => WatchStatusBloc(locator()),
+  );
+  locator.registerFactoryParam<Top250Bloc, Top250Type, void>(
+    (type, _) => Top250Bloc(locator(), type),
   );
   locator.registerFactory<PlayerBloc>(
     () => PlayerBloc(locator(), locator()),

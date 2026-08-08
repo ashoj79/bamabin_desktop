@@ -1,14 +1,18 @@
 import 'package:bamabin_desktop/config/color.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/post_details.dart';
+import 'package:bamabin_desktop/screen/download_manager/bloc/download_manager_bloc.dart';
+import 'package:bamabin_desktop/screen/download_manager/bloc/download_manager_event.dart';
 import 'package:bamabin_desktop/screen/post_details/widgets/post_media_access_guard.dart';
+import 'package:bamabin_desktop/utils/di.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 Future<void> showPostDownloadOverlay(
   BuildContext context, {
   required bool isSeries,
+  required String title,
+  String posterUrl = '',
   MovieDownloadBox? movieDownloadBox,
   List<Season>? seasons,
 }) {
@@ -20,6 +24,8 @@ Future<void> showPostDownloadOverlay(
     builder: (context) {
       return PostDownloadOverlay(
         isSeries: isSeries,
+        title: title,
+        posterUrl: posterUrl,
         movieDownloadBox: movieDownloadBox,
         seasons: seasons ?? const [],
       );
@@ -31,11 +37,15 @@ class PostDownloadOverlay extends StatefulWidget {
   const PostDownloadOverlay({
     super.key,
     required this.isSeries,
+    required this.title,
+    this.posterUrl = '',
     this.movieDownloadBox,
     this.seasons = const [],
   });
 
   final bool isSeries;
+  final String title;
+  final String posterUrl;
   final MovieDownloadBox? movieDownloadBox;
   final List<Season> seasons;
 
@@ -142,12 +152,38 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
     ];
   }
 
-  Future<void> _openLink(String link) async {
+  Future<void> _enqueueDownload(
+    MovieInfo info, {
+    String? seasonName,
+    int? episodeNumber,
+  }) async {
     if (!await ensureMediaAccess(context, actionLabel: 'دانلود')) return;
-    if (link.isEmpty) return;
-    final uri = Uri.tryParse(link);
-    if (uri == null) return;
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (info.link.isEmpty) return;
+
+    final parts = <String>[widget.title];
+    if (seasonName != null && seasonName.isNotEmpty) {
+      parts.add('فصل $seasonName');
+    }
+    if (episodeNumber != null) {
+      parts.add('قسمت $episodeNumber');
+    }
+    final quality = info.encoder.isNotEmpty
+        ? '${info.quality} - ${info.encoder}'
+        : info.quality;
+
+    locator<DownloadManagerBloc>().add(
+      DownloadEnqueued(
+        url: info.link,
+        title: parts.join(' - '),
+        posterUrl: widget.posterUrl,
+        quality: quality,
+        sizeLabel: info.size,
+      ),
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('به صف دانلود اضافه شد')),
+    );
   }
 
   Future<void> _copyLink(String link) async {
@@ -267,7 +303,8 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
                   _MovieQualityItem(
                     info: sections[i].items[j],
                     type: sections[i].type,
-                    onDownload: () => _openLink(sections[i].items[j].link),
+                    onDownload: () =>
+                        _enqueueDownload(sections[i].items[j]),
                     onCopy: () => _copyLink(sections[i].items[j].link),
                   ),
                 ],
@@ -304,14 +341,22 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
                 }
               });
             },
-            child: _buildSeasonTypes(s, widget.seasons[s].items),
+            child: _buildSeasonTypes(
+              s,
+              widget.seasons[s].name,
+              widget.seasons[s].items,
+            ),
           ),
         ],
       ],
     );
   }
 
-  Widget _buildSeasonTypes(int seasonIndex, SeriesDownloadBox box) {
+  Widget _buildSeasonTypes(
+    int seasonIndex,
+    String seasonName,
+    SeriesDownloadBox box,
+  ) {
     final sections = _seriesTypeEntries(box);
     if (sections.isEmpty) {
       return const Padding(
@@ -344,7 +389,29 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
                   _SeriesQualityItem(
                     quality: quality,
                     type: sections[i].type,
-                    onDownloadEpisode: _openLink,
+                    onDownloadEpisode: (episode, episodeNumber) {
+                      final enriched = MovieInfo(
+                        name: episode.name,
+                        link: episode.link,
+                        quality: episode.quality.isNotEmpty
+                            ? episode.quality
+                            : quality.quality,
+                        mainQuality: episode.mainQuality,
+                        qualityCode: episode.qualityCode,
+                        subtitleTypes: episode.subtitleTypes,
+                        encoder: episode.encoder.isNotEmpty
+                            ? episode.encoder
+                            : quality.encoders,
+                        size: episode.size.isNotEmpty
+                            ? episode.size
+                            : quality.size,
+                      );
+                      _enqueueDownload(
+                        enriched,
+                        seasonName: seasonName,
+                        episodeNumber: episodeNumber,
+                      );
+                    },
                     onCopyAll: () => _copyAllLinks(
                       quality.episodes.map((e) => e.link).toList(),
                     ),
@@ -359,6 +426,7 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
     );
   }
 }
+
 
 class _TypeSection<T> {
   const _TypeSection({
@@ -723,7 +791,7 @@ class _SeriesQualityItem extends StatelessWidget {
 
   final QualityInfo quality;
   final MovieType type;
-  final ValueChanged<String> onDownloadEpisode;
+  final void Function(MovieInfo episode, int episodeNumber) onDownloadEpisode;
   final VoidCallback onCopyAll;
 
   @override
@@ -802,7 +870,7 @@ class _SeriesQualityItem extends StatelessWidget {
                 return _OutlineActionButton(
                   label: 'قسمت ${index + 1}',
                   iconAsset: 'assets/img/download.svg',
-                  onTap: () => onDownloadEpisode(episode.link),
+                  onTap: () => onDownloadEpisode(episode, index + 1),
                 );
               },
             );

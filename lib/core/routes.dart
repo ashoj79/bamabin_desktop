@@ -25,6 +25,7 @@ class Routes {
   static const String userListItems = '/user-list-items';
   static const String userListPosts = '/user-list-posts';
   static const String downloadOptions = '/download-options';
+  static const String downloadManager = '/download-manager';
   static const String playOptions = '/play-options';
   static const String player = '/player';
   static const String translator = '/translator';

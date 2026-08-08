@@ -107,6 +107,7 @@ class PostDetailsHero extends StatelessWidget {
                     isInWatchlist: isInWatchlist,
                     isWatchlistLoading: isWatchlistLoading,
                     isSeries: isSeries,
+                    posterUrl: posterUrl,
                     movieDownloadBox: movieDownloadBox,
                     seasons: seasons,
                   ),
@@ -466,6 +467,7 @@ class _HeroContent extends StatelessWidget {
     required this.isInWatchlist,
     required this.isWatchlistLoading,
     required this.isSeries,
+    required this.posterUrl,
     this.movieDownloadBox,
     this.seasons = const [],
   });
@@ -487,6 +489,7 @@ class _HeroContent extends StatelessWidget {
   final bool isInWatchlist;
   final bool isWatchlistLoading;
   final bool isSeries;
+  final String posterUrl;
   final MovieDownloadBox? movieDownloadBox;
   final List<Season> seasons;
 
@@ -570,6 +573,7 @@ class _HeroContent extends StatelessWidget {
           postId: postId,
           data: data,
           title: mainTitle,
+          posterUrl: posterUrl,
           isLoading: isDetailsLoading,
           isInWatchlist: isInWatchlist,
           isWatchlistLoading: isWatchlistLoading,
@@ -903,6 +907,7 @@ class _HeroActionRow extends StatelessWidget {
     required this.postId,
     this.data,
     required this.title,
+    required this.posterUrl,
     required this.isLoading,
     required this.isInWatchlist,
     required this.isWatchlistLoading,
@@ -914,6 +919,7 @@ class _HeroActionRow extends StatelessWidget {
   final int postId;
   final PostDetails? data;
   final String title;
+  final String posterUrl;
   final bool isLoading;
   final bool isInWatchlist;
   final bool isWatchlistLoading;
@@ -925,6 +931,8 @@ class _HeroActionRow extends StatelessWidget {
     showPostDownloadOverlay(
       context,
       isSeries: isSeries,
+      title: title,
+      posterUrl: posterUrl,
       movieDownloadBox: movieDownloadBox,
       seasons: seasons,
     );

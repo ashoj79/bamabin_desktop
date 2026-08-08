@@ -3,6 +3,8 @@ import 'package:bamabin_desktop/data/remote/model/videos/post.dart';
 import 'package:bamabin_desktop/screen/auth/auth_screen.dart';
 import 'package:bamabin_desktop/screen/auth/bloc/auth_bloc.dart';
 import 'package:bamabin_desktop/screen/categories/categories_screen.dart';
+import 'package:bamabin_desktop/screen/download_manager/bloc/download_manager_bloc.dart';
+import 'package:bamabin_desktop/screen/download_manager/download_manager_screen.dart';
 import 'package:bamabin_desktop/screen/home/home_screen.dart';
 import 'package:bamabin_desktop/screen/main/main_placeholder_page.dart';
 import 'package:bamabin_desktop/screen/main/main_screen.dart';
@@ -17,6 +19,8 @@ import 'package:bamabin_desktop/screen/search/search_screen.dart';
 import 'package:bamabin_desktop/screen/splash/splash_screen.dart';
 import 'package:bamabin_desktop/screen/subscription/bloc/subscription_bloc.dart';
 import 'package:bamabin_desktop/screen/subscription/subscription_screen.dart';
+import 'package:bamabin_desktop/screen/top250/bloc/top250_bloc.dart';
+import 'package:bamabin_desktop/screen/top250/top250_screen.dart';
 import 'package:bamabin_desktop/screen/watch_status/bloc/watch_status_bloc.dart';
 import 'package:bamabin_desktop/screen/watch_status/watch_status_screen.dart';
 import 'package:bamabin_desktop/utils/di.dart';
@@ -86,6 +90,27 @@ final GoRouter router = GoRouter(
           path: Routes.notifications,
           builder: (context, state) =>
               const MainPlaceholderPage(title: 'اعلان‌ها'),
+        ),
+        GoRoute(
+          path: Routes.downloadManager,
+          builder: (context, state) => BlocProvider.value(
+            value: locator<DownloadManagerBloc>(),
+            child: const DownloadManagerScreen(),
+          ),
+        ),
+        GoRoute(
+          path: Routes.top250Movies,
+          builder: (context, state) => BlocProvider(
+            create: (_) => locator<Top250Bloc>(param1: Top250Type.movies),
+            child: const Top250Screen(type: Top250Type.movies),
+          ),
+        ),
+        GoRoute(
+          path: Routes.top250Series,
+          builder: (context, state) => BlocProvider(
+            create: (_) => locator<Top250Bloc>(param1: Top250Type.series),
+            child: const Top250Screen(type: Top250Type.series),
+          ),
         ),
       ],
     ),
