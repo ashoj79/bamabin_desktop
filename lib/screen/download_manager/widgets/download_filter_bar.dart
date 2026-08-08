@@ -12,12 +12,13 @@ class DownloadFilterBar extends StatelessWidget {
   final DownloadFilter selected;
   final ValueChanged<DownloadFilter> onChanged;
 
+  // RTL visual order (right → left): همه، فعال، تکمیل، متوقف، خطا
   static const _items = <(DownloadFilter, String)>[
-    (DownloadFilter.error, 'خطا'),
-    (DownloadFilter.paused, 'متوقف'),
-    (DownloadFilter.completed, 'تکمیل'),
-    (DownloadFilter.active, 'فعال'),
     (DownloadFilter.all, 'همه'),
+    (DownloadFilter.active, 'فعال'),
+    (DownloadFilter.completed, 'تکمیل'),
+    (DownloadFilter.paused, 'متوقف'),
+    (DownloadFilter.error, 'خطا'),
   ];
 
   @override
@@ -59,7 +60,8 @@ class _FilterPill extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(999),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
@@ -72,6 +74,7 @@ class _FilterPill extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
+              fontFamily: 'vazir',
               fontSize: 16,
               fontWeight: FontWeight.w500,
               color: selected

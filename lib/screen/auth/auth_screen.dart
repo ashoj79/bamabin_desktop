@@ -1549,9 +1549,18 @@ class _QrExpanded extends StatelessWidget {
   final VoidCallback onCollapse;
   final VoidCallback onRefresh;
 
+  String? get _loginCode {
+    final value = link?.trim();
+    if (value == null || value.isEmpty) return null;
+    final parts = value.split('/').where((part) => part.isNotEmpty);
+    if (parts.isEmpty) return null;
+    return parts.last;
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasLink = link != null && link!.isNotEmpty;
+    final loginCode = _loginCode;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -1612,8 +1621,7 @@ class _QrExpanded extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           const Text(
-            'با دوربین گوشی هوشمند خود این کد را اسکن کنید یا لینک زیر را در مرورگر باز نمایید.\n\n'
-            'اگر اپلیکیشن بامابین را ندارید می‌توانید لینک را کپی کرده و در مرورگر باز کنید. نیازی به نصب اپلیکیشن نیست.',
+            'با دوربین گوشی هوشمند خود این کد را اسکن کنید، یا کد ورود زیر را در سایت یا اپلیکیشن موبایل بامابین وارد کنید.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 12,
@@ -1622,18 +1630,61 @@ class _QrExpanded extends StatelessWidget {
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 16),
-          SelectableText(
-            link!,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontFamily: 'vazir',
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-              height: 1.4,
+          if (loginCode != null) ...[
+            const SizedBox(height: 16),
+            const Text(
+              'کد ورود',
+              style: TextStyle(
+                fontSize: 12.5,
+                color: _authMuted,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: SelectableText(
+                    loginCode,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontFamily: 'vazir',
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      height: 1.4,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Material(
+                  color: blueColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                  child: InkWell(
+                    onTap: () async {
+                      await Clipboard.setData(
+                        ClipboardData(text: loginCode),
+                      );
+                      if (!context.mounted) return;
+                      showBamabinSnackbar(context, 'کد ورود کپی شد');
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: SizedBox(
+                      width: 34,
+                      height: 34,
+                      child: Icon(
+                        Icons.copy_rounded,
+                        size: 16,
+                        color: blueColor,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 16),
           OutlinedButton(
             onPressed: onRefresh,

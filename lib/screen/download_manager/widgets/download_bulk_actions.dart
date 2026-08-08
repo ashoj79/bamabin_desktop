@@ -21,47 +21,57 @@ class DownloadBulkActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // RTL visual order (right → left):
+    // انتخاب چندین | پاک کردن | حذف انتخاب‌شده | . | انتخاب همه و حذف
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Wrap(
-        spacing: 10,
-        runSpacing: 8,
-        alignment: WrapAlignment.end,
-        crossAxisAlignment: WrapCrossAlignment.center,
+      child: Row(
         children: [
-          if (selectionMode) ...[
-            _ActionTag(
-              label: 'پاک کردن انتخاب شده ها',
-              foreground: Colors.white.withValues(alpha: 0.48),
-              onTap: onClearSelection,
-            ),
-            _ActionTag(
-              label: 'حذف دانلود های انتخاب شده',
-              foreground: failedColor,
-              borderColor: failedColor.withValues(alpha: 0.5),
-              onTap: hasSelection ? onDeleteSelected : null,
-            ),
-          ],
-          _ActionTag(
-            label: 'انتخاب همه و حذف دانلود ها',
-            foreground: failedColor,
-            onTap: onSelectAllAndDelete,
-          ),
-          Text(
-            '.',
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.white.withValues(alpha: 0.48),
-            ),
-          ),
           _ActionTag(
             label: 'انتخاب چندین دانلود',
-            foreground: selectionMode ? blueColor : Colors.white.withValues(alpha: 0.75),
+            foreground: selectionMode
+                ? blueColor
+                : Colors.white.withValues(alpha: 0.75),
             borderColor: selectionMode
-                ? blueColor.withValues(alpha: 0.6)
+                ? blueColor.withValues(alpha: 0.7)
                 : Colors.white.withValues(alpha: 0.12),
             onTap: onToggleSelectionMode,
           ),
+          if (selectionMode) ...[
+            const SizedBox(width: 10),
+            _ActionTag(
+              label: 'پاک کردن انتخاب شده ها',
+              foreground: Colors.white.withValues(alpha: 0.48),
+              borderColor: Colors.white.withValues(alpha: 0.12),
+              onTap: onClearSelection,
+            ),
+            const SizedBox(width: 10),
+            _ActionTag(
+              label: 'حذف دانلود های انتخاب شده',
+              foreground: const Color(0xFFF87171),
+              borderColor: const Color(0xFFF87171).withValues(alpha: 0.55),
+              onTap: hasSelection ? onDeleteSelected : null,
+            ),
+          ],
+          const SizedBox(width: 10),
+          Text(
+            '.',
+            style: TextStyle(
+              fontFamily: 'vazir',
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+              height: 24 / 20,
+              color: Colors.white.withValues(alpha: 0.48),
+            ),
+          ),
+          const SizedBox(width: 10),
+          _ActionTag(
+            label: 'انتخاب همه و حذف دانلود ها',
+            foreground: const Color(0xFFF87171),
+            borderColor: const Color(0xFFF87171).withValues(alpha: 0.4),
+            onTap: onSelectAllAndDelete,
+          ),
+          const Spacer(),
         ],
       ),
     );
@@ -99,6 +109,7 @@ class _ActionTag extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
+              fontFamily: 'vazir',
               fontSize: 16,
               fontWeight: FontWeight.w500,
               color: onTap == null

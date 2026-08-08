@@ -70,6 +70,7 @@ class _StatCard extends StatelessWidget {
             '$count',
             textDirection: TextDirection.ltr,
             style: TextStyle(
+              fontFamily: 'vazir',
               fontSize: 32,
               fontWeight: FontWeight.w500,
               height: 48 / 32,
@@ -81,6 +82,7 @@ class _StatCard extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
+              fontFamily: 'vazir',
               fontSize: 16,
               fontWeight: FontWeight.w400,
               height: 22 / 16,
