@@ -27,6 +27,8 @@ import 'package:bamabin_desktop/screen/subscription/bloc/subscription_bloc.dart'
 import 'package:bamabin_desktop/screen/watch_status/bloc/watch_status_bloc.dart';
 import 'package:bamabin_desktop/screen/player/bloc/player_bloc.dart';
 import 'package:bamabin_desktop/screen/top250/bloc/top250_bloc.dart';
+import 'package:bamabin_desktop/screen/tickets/bloc/ticket_details_bloc.dart';
+import 'package:bamabin_desktop/screen/tickets/bloc/tickets_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bamabin_desktop/config/dio_helper.dart';
 import 'package:get_it/get_it.dart';
@@ -105,5 +107,11 @@ Future<void> setupLocator() async {
   );
   locator.registerFactory<PlayerBloc>(
     () => PlayerBloc(locator(), locator()),
+  );
+  locator.registerFactory<TicketsBloc>(
+    () => TicketsBloc(locator()),
+  );
+  locator.registerFactory<TicketDetailsBloc>(
+    () => TicketDetailsBloc(locator()),
   );
 }

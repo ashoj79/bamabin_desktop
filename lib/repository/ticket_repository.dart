@@ -35,7 +35,7 @@ class TicketRepository {
     }
   }
 
-  Future<DataState<dynamic>> createTicket(
+  Future<DataState<int?>> createTicket(
     String title,
     int department,
     String content,

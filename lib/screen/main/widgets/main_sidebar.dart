@@ -90,6 +90,7 @@ class _MainSidebarState extends State<MainSidebar> {
     Routes.profile,
     Routes.watchStatusPosts,
     Routes.downloadManager,
+    Routes.tickets,
     Routes.notifications,
     Routes.top250Movies,
     Routes.top250Series,
@@ -100,6 +101,9 @@ class _MainSidebarState extends State<MainSidebar> {
   bool _isSelected(String location, String route) {
     if (route == Routes.main) {
       return location == Routes.main || location == '/';
+    }
+    if (route == Routes.tickets) {
+      return location == Routes.tickets || location == Routes.ticketDetails;
     }
     return location == route || location.startsWith('$route/');
   }

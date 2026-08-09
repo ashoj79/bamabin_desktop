@@ -21,16 +21,30 @@ class TicketApiService extends BaseApiService {
     );
   }
 
-  Future<ApiResponse<dynamic>> addTicket(
+  Future<ApiResponse<int?>> addTicket(
     String title,
     int department,
     String content,
   ) async {
     return await post(
       '/ticket/create',
-      (json) => null,
+      _parseCreatedTicketId,
       data: {'title': title, 'department': department, 'content': content},
     );
+  }
+
+  static int? _parseCreatedTicketId(dynamic json) {
+    if (json == null) return null;
+    if (json is int) return json;
+    if (json is num) return json.toInt();
+    if (json is String) return int.tryParse(json);
+    if (json is Map) {
+      final id = json['ID'] ?? json['id'] ?? json['ticket_id'];
+      if (id is int) return id;
+      if (id is num) return id.toInt();
+      if (id != null) return int.tryParse(id.toString());
+    }
+    return null;
   }
 
   Future<ApiResponse<TicketDetails>> getTicketDetails(

@@ -1,4 +1,5 @@
 import 'package:bamabin_desktop/core/routes.dart';
+import 'package:bamabin_desktop/data/remote/model/user/ticket.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/post.dart';
 import 'package:bamabin_desktop/screen/auth/auth_screen.dart';
 import 'package:bamabin_desktop/screen/auth/bloc/auth_bloc.dart';
@@ -19,6 +20,10 @@ import 'package:bamabin_desktop/screen/search/search_screen.dart';
 import 'package:bamabin_desktop/screen/splash/splash_screen.dart';
 import 'package:bamabin_desktop/screen/subscription/bloc/subscription_bloc.dart';
 import 'package:bamabin_desktop/screen/subscription/subscription_screen.dart';
+import 'package:bamabin_desktop/screen/tickets/bloc/ticket_details_bloc.dart';
+import 'package:bamabin_desktop/screen/tickets/bloc/tickets_bloc.dart';
+import 'package:bamabin_desktop/screen/tickets/ticket_details_screen.dart';
+import 'package:bamabin_desktop/screen/tickets/tickets_screen.dart';
 import 'package:bamabin_desktop/screen/top250/bloc/top250_bloc.dart';
 import 'package:bamabin_desktop/screen/top250/top250_screen.dart';
 import 'package:bamabin_desktop/screen/watch_status/bloc/watch_status_bloc.dart';
@@ -97,6 +102,30 @@ final GoRouter router = GoRouter(
             value: locator<DownloadManagerBloc>(),
             child: const DownloadManagerScreen(),
           ),
+        ),
+        GoRoute(
+          path: Routes.tickets,
+          builder: (context, state) => BlocProvider(
+            create: (_) => locator<TicketsBloc>(),
+            child: const TicketsScreen(),
+          ),
+        ),
+        GoRoute(
+          path: Routes.ticketDetails,
+          builder: (context, state) {
+            final extra = state.extra;
+            final ticketId = extra is int
+                ? extra
+                : (extra is Ticket ? extra.id : null);
+            if (ticketId == null) {
+              return const MainPlaceholderPage(title: 'جزئیات تیکت');
+            }
+            return BlocProvider(
+              create: (_) => locator<TicketDetailsBloc>()
+                ..add(TicketDetailsLoadEvent(ticketId)),
+              child: const TicketDetailsScreen(),
+            );
+          },
         ),
         GoRoute(
           path: Routes.top250Movies,
