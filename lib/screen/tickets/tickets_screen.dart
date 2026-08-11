@@ -59,8 +59,14 @@ class _TicketsScreenState extends State<TicketsScreen> {
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
-  void _openTicket(int ticketId) {
-    context.push(Routes.ticketDetails, extra: ticketId);
+  void _openTicket(int ticketId, TicketsListType listType) {
+    context.push(
+      Routes.ticketDetails,
+      extra: {
+        'id': ticketId,
+        'type': listType.apiValue,
+      },
+    );
   }
 
   @override
@@ -93,7 +99,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
           final ticketId = state.navigateToTicketId;
           if (ticketId != null) {
             context.read<TicketsBloc>().add(TicketsClearNavigationEvent());
-            _openTicket(ticketId);
+            _openTicket(ticketId, TicketsListType.ticket);
           }
         },
         builder: (context, state) {
@@ -175,7 +181,12 @@ class _TicketsScreenState extends State<TicketsScreen> {
                     const SizedBox(height: 24),
                     _TicketsListCard(
                       tickets: loaded.tickets,
-                      onTicketTap: _openTicket,
+                      listType: loaded.listType,
+                      isListLoading: loaded.isListLoading,
+                      onListTypeChanged: (type) => context
+                          .read<TicketsBloc>()
+                          .add(TicketsSelectListTypeEvent(type)),
+                      onTicketTap: (id) => _openTicket(id, loaded.listType),
                     ),
                   ],
                 ),
@@ -426,10 +437,16 @@ class _NewTicketCard extends StatelessWidget {
 class _TicketsListCard extends StatelessWidget {
   const _TicketsListCard({
     required this.tickets,
+    required this.listType,
+    required this.isListLoading,
+    required this.onListTypeChanged,
     required this.onTicketTap,
   });
 
   final List<Ticket> tickets;
+  final TicketsListType listType;
+  final bool isListLoading;
+  final ValueChanged<TicketsListType> onListTypeChanged;
   final ValueChanged<int> onTicketTap;
 
   @override
@@ -438,24 +455,24 @@ class _TicketsListCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Align(
+          Align(
             alignment: AlignmentDirectional.centerStart,
-            child: Text(
-              'لیست تیکت‌های اخیر',
-              style: TextStyle(
-                fontFamily: 'vazir',
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
+            child: _TicketsListTabs(
+              listType: listType,
+              onChanged: onListTypeChanged,
             ),
           ),
           const SizedBox(height: 24),
-          if (tickets.isEmpty)
+          if (isListLoading)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 40),
+              child: Center(child: LoadingWidget()),
+            )
+          else if (tickets.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 32),
               child: Text(
-                'هنوز تیکتی ثبت نکرده‌اید.',
+                listType.emptyMessage,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: 'vazir',
@@ -465,7 +482,7 @@ class _TicketsListCard extends StatelessWidget {
               ),
             )
           else ...[
-            const _TicketsHeaderRow(),
+            _TicketsHeaderRow(subjectLabel: listType.subjectHeader),
             const SizedBox(height: 12),
             for (var i = 0; i < tickets.length; i++) ...[
               if (i > 0) const SizedBox(height: 12),
@@ -475,9 +492,85 @@ class _TicketsListCard extends StatelessWidget {
               ),
             ],
           ],
-          const SizedBox(height: 24),
-          const _SupportGuideNote(),
         ],
+      ),
+    );
+  }
+}
+
+class _TicketsListTabs extends StatelessWidget {
+  const _TicketsListTabs({
+    required this.listType,
+    required this.onChanged,
+  });
+
+  final TicketsListType listType;
+  final ValueChanged<TicketsListType> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _TicketsListTab(
+          label: 'تیکت های من',
+          selected: listType == TicketsListType.ticket,
+          onTap: () => onChanged(TicketsListType.ticket),
+        ),
+        const SizedBox(width: 8),
+        _TicketsListTab(
+          label: 'گزارش های من',
+          selected: listType == TicketsListType.report,
+          onTap: () => onChanged(TicketsListType.report),
+        ),
+      ],
+    );
+  }
+}
+
+class _TicketsListTab extends StatelessWidget {
+  const _TicketsListTab({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final borderRadius = BorderRadius.circular(999);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: borderRadius,
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: borderRadius,
+            border: Border.all(
+              color: selected
+                  ? Colors.white.withValues(alpha: 0.09)
+                  : Colors.white.withValues(alpha: 0.2),
+            ),
+            color: selected ? blueColor : Colors.white.withValues(alpha: 0.09),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'vazir',
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              letterSpacing: -0.18,
+              color: selected
+                  ? Colors.white
+                  : Colors.white.withValues(alpha: 0.75),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -707,7 +800,9 @@ class _SubmitButton extends StatelessWidget {
 }
 
 class _TicketsHeaderRow extends StatelessWidget {
-  const _TicketsHeaderRow();
+  const _TicketsHeaderRow({required this.subjectLabel});
+
+  final String subjectLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -739,7 +834,7 @@ class _TicketsHeaderRow extends StatelessWidget {
               ),
               Expanded(
                 child: Text(
-                  'موضوع تیکت / شماره',
+                  subjectLabel,
                   textAlign: TextAlign.right,
                   style: style,
                 ),
@@ -902,54 +997,10 @@ class _TicketStatusStyle {
 
     return _TicketStatusStyle(
       label: name.isNotEmpty ? name : 'در انتظار بررسی',
-      foreground: blueColor,
-      background: blueColor.withValues(alpha: 0.12),
-      border: blueColor.withValues(alpha: 0.25),
+      foreground: const Color(0xFF38BDF8),
+      background: const Color(0xFF38BDF8).withValues(alpha: 0.12),
+      border: const Color(0xFF38BDF8).withValues(alpha: 0.25),
     );
   }
 }
 
-class _SupportGuideNote extends StatelessWidget {
-  const _SupportGuideNote();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF59E0B).withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFF59E0B).withValues(alpha: 0.25),
-        ),
-      ),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'راهنمای پاسخگویی تیکت‌ها',
-            textAlign: TextAlign.right,
-            style: TextStyle(
-              fontFamily: 'vazir',
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFFF59E0B),
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'همکاران ما در بخش پشتیبانی باما ببین حداکثر ظرف مدت ۲ ساعت پاسخگوی درخواست‌های شما خواهند بود. لطفاً از ثبت تیکت‌های مکرر برای یک موضوع خودداری فرمایید.',
-            textAlign: TextAlign.justify,
-            style: TextStyle(
-              fontFamily: 'vazir',
-              fontSize: 12,
-              height: 1.5,
-              color: Color(0xBFFFFFFF),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

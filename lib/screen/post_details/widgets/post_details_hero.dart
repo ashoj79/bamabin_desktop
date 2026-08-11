@@ -7,6 +7,7 @@ import 'package:bamabin_desktop/data/remote/model/videos/post_details.dart';
 import 'package:bamabin_desktop/screen/post_details/bloc/post_details_bloc.dart';
 import 'package:bamabin_desktop/screen/post_details/widgets/post_download_overlay.dart';
 import 'package:bamabin_desktop/screen/post_details/widgets/post_online_play_overlay.dart';
+import 'package:bamabin_desktop/screen/post_details/widgets/post_report_dialog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -86,7 +87,7 @@ class PostDetailsHero extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               textDirection: TextDirection.rtl,
               children: [
-                _HeroPoster(url: posterUrl),
+                _HeroPoster(url: posterUrl, postId: postId),
                 const SizedBox(width: 32),
                 Expanded(
                   child: _HeroContent(
@@ -413,9 +414,13 @@ class _HeroBackground extends StatelessWidget {
 }
 
 class _HeroPoster extends StatelessWidget {
-  const _HeroPoster({required this.url});
+  const _HeroPoster({
+    required this.url,
+    required this.postId,
+  });
 
   final String url;
+  final int postId;
 
   static const _width = 308.0;
   static const _height = 469.0;
@@ -423,27 +428,89 @@ class _HeroPoster extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: _width,
       height: _height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(_radius),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: url.isEmpty
-          ? const ColoredBox(color: Color(0xFF111115))
-          : CachedNetworkImage(
-              imageUrl: url,
-              width: _width,
-              height: _height,
-              fit: BoxFit.cover,
-              alignment: Alignment.center,
-              fadeInDuration: Duration.zero,
-              fadeOutDuration: Duration.zero,
-              errorWidget: (_, _, _) =>
-                  const ColoredBox(color: Color(0xFF111115)),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(_radius),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: url.isEmpty
+                  ? const ColoredBox(color: Color(0xFF111115))
+                  : CachedNetworkImage(
+                      imageUrl: url,
+                      width: _width,
+                      height: _height,
+                      fit: BoxFit.cover,
+                      alignment: Alignment.center,
+                      fadeInDuration: Duration.zero,
+                      fadeOutDuration: Duration.zero,
+                      errorWidget: (_, _, _) =>
+                          const ColoredBox(color: Color(0xFF111115)),
+                    ),
             ),
+          ),
+          Positioned(
+            top: 10,
+            right: 10,
+            child: _PosterReportButton(
+              onTap: () => showPostReportDialog(context, postId: postId),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PosterReportButton extends StatelessWidget {
+  const _PosterReportButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: redColor,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // RTL: flag on the right, text on the left
+              SvgPicture.asset(
+                'assets/img/flag.svg',
+                width: 14,
+                height: 14,
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Text(
+                'گزارش',
+                style: TextStyle(
+                  fontFamily: 'vazir',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  height: 1,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -3,27 +3,27 @@ import 'package:bamabin_desktop/core/widgets/bamabin_empty_state.dart';
 import 'package:bamabin_desktop/core/widgets/bamabin_snackbar.dart';
 import 'package:bamabin_desktop/core/widgets/post_widget.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/post.dart';
-import 'package:bamabin_desktop/screen/watch_status/bloc/watch_status_bloc.dart';
 import 'package:bamabin_desktop/screen/watch_status/widgets/shelf_delete_dialog.dart';
+import 'package:bamabin_desktop/screen/watchlist/bloc/watchlist_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 
-class WatchStatusScreen extends StatefulWidget {
-  const WatchStatusScreen({super.key});
+class WatchlistScreen extends StatefulWidget {
+  const WatchlistScreen({super.key});
 
   @override
-  State<WatchStatusScreen> createState() => _WatchStatusScreenState();
+  State<WatchlistScreen> createState() => _WatchlistScreenState();
 }
 
-class _WatchStatusScreenState extends State<WatchStatusScreen> {
+class _WatchlistScreenState extends State<WatchlistScreen> {
   final _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    context.read<WatchStatusBloc>().add(WatchStatusLoadEvent());
+    context.read<WatchlistBloc>().add(WatchlistLoadEvent());
   }
 
   @override
@@ -38,18 +38,8 @@ class _WatchStatusScreenState extends State<WatchStatusScreen> {
     if (!_scrollController.hasClients) return;
     final position = _scrollController.position;
     if (position.pixels >= position.maxScrollExtent - 240) {
-      context.read<WatchStatusBloc>().add(WatchStatusLoadMoreEvent());
+      context.read<WatchlistBloc>().add(WatchlistLoadMoreEvent());
     }
-  }
-
-  WatchStatusFilter _filterOf(WatchStatusState state) {
-    return switch (state) {
-      WatchStatusLoading(:final filter) => filter,
-      WatchStatusLoadingMore(:final filter) => filter,
-      WatchStatusSuccess(:final filter) => filter,
-      WatchStatusError(:final filter) => filter,
-      _ => WatchStatusFilter.notWatched,
-    };
   }
 
   Future<void> _onDeleteTap(Post post) async {
@@ -57,53 +47,64 @@ class _WatchStatusScreenState extends State<WatchStatusScreen> {
     final confirmed = await showShelfDeleteConfirmDialog(
       context,
       message: title.isNotEmpty
-          ? 'آیا می‌خواهید «$title» را از قفسه حذف کنید؟'
-          : 'آیا می‌خواهید این مورد را از قفسه حذف کنید؟',
+          ? 'آیا می‌خواهید «$title» را از علاقه‌مندی‌ها حذف کنید؟'
+          : 'آیا می‌خواهید این مورد را از علاقه‌مندی‌ها حذف کنید؟',
     );
     if (!confirmed || !mounted) return;
-    context.read<WatchStatusBloc>().add(WatchStatusDeleteEvent(post.id));
+    context.read<WatchlistBloc>().add(WatchlistDeleteEvent(post.id));
+  }
+
+  Future<void> _onClearAllTap() async {
+    final confirmed = await showShelfDeleteConfirmDialog(
+      context,
+      message: 'آیا می‌خواهید تمامی علاقه‌مندی‌های خود را پاک کنید؟',
+    );
+    if (!confirmed || !mounted) return;
+    context.read<WatchlistBloc>().add(WatchlistClearAllEvent());
   }
 
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
       color: const Color(0xFF0C0C14),
-      child: BlocConsumer<WatchStatusBloc, WatchStatusState>(
+      child: BlocConsumer<WatchlistBloc, WatchlistState>(
         listenWhen: (previous, current) {
-          if (current is! WatchStatusSuccess) return false;
-          if (previous is! WatchStatusSuccess) {
+          if (current is! WatchlistSuccess) return false;
+          if (previous is! WatchlistSuccess) {
             return current.feedbackMessage != null;
           }
           return current.feedbackMessage != null &&
               current.feedbackMessage != previous.feedbackMessage;
         },
         listener: (context, state) {
-          if (state is! WatchStatusSuccess) return;
+          if (state is! WatchlistSuccess) return;
           final message = state.feedbackMessage;
           if (message == null || message.isEmpty) return;
           showBamabinSnackbar(context, message);
-          context.read<WatchStatusBloc>().add(WatchStatusClearFeedbackEvent());
+          context.read<WatchlistBloc>().add(WatchlistClearFeedbackEvent());
         },
         builder: (context, state) {
-          final filter = _filterOf(state);
+          final canClearAll = switch (state) {
+            WatchlistSuccess(:final items, :final isBusy) =>
+              items.isNotEmpty && !isBusy,
+            _ => false,
+          };
 
           return Padding(
             padding: const EdgeInsets.fromLTRB(32, 16, 32, 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _ShelfHeader(
-                  filter: filter,
-                  onFilterChanged: (value) => context
-                      .read<WatchStatusBloc>()
-                      .add(WatchStatusSelectFilterEvent(value)),
+                _WatchlistHeader(
+                  canClearAll: canClearAll,
+                  onClearAll: _onClearAllTap,
                 ),
                 const SizedBox(height: 32),
                 Expanded(
                   child: switch (state) {
-                    WatchStatusInitial() || WatchStatusLoading() =>
-                      const _ShelfGridShimmer(),
-                    WatchStatusError(:final message) => Center(
+                    WatchlistInitial() || WatchlistLoading() =>
+                      const _WatchlistGridShimmer(),
+                    WatchlistError(:final message) => Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -119,8 +120,8 @@ class _WatchStatusScreenState extends State<WatchStatusScreen> {
                           const SizedBox(height: 12),
                           TextButton(
                             onPressed: () => context
-                                .read<WatchStatusBloc>()
-                                .add(WatchStatusLoadEvent()),
+                                .read<WatchlistBloc>()
+                                .add(WatchlistLoadEvent()),
                             child: Text(
                               'تلاش مجدد',
                               style: TextStyle(color: blueColor),
@@ -129,24 +130,34 @@ class _WatchStatusScreenState extends State<WatchStatusScreen> {
                         ],
                       ),
                     ),
-                    WatchStatusLoadingMore(:final items) => _ShelfGrid(
+                    WatchlistLoadingMore(:final items) => _WatchlistGrid(
                       items: items,
                       controller: _scrollController,
                       showFooterShimmer: true,
                       onDeleteTap: _onDeleteTap,
                     ),
-                    WatchStatusSuccess(
+                    WatchlistSuccess(
                       :final items,
                       :final deletingPostId,
+                      :final isClearingAll,
                     ) =>
-                      items.isEmpty
-                          ? BamabinEmptyState(message: filter.emptyMessage)
-                          : _ShelfGrid(
-                              items: items,
-                              controller: _scrollController,
-                              deletingPostId: deletingPostId,
-                              onDeleteTap: _onDeleteTap,
-                            ),
+                      isClearingAll
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                              ),
+                            )
+                          : items.isEmpty
+                              ? const BamabinEmptyState(
+                                  message:
+                                      'نتیجه ای برای علاقه مندی های شما پیدا نشد.',
+                                )
+                              : _WatchlistGrid(
+                                  items: items,
+                                  controller: _scrollController,
+                                  deletingPostId: deletingPostId,
+                                  onDeleteTap: _onDeleteTap,
+                                ),
                   },
                 ),
               ],
@@ -158,94 +169,74 @@ class _WatchStatusScreenState extends State<WatchStatusScreen> {
   }
 }
 
-class _ShelfHeader extends StatelessWidget {
-  const _ShelfHeader({
-    required this.filter,
-    required this.onFilterChanged,
+class _WatchlistHeader extends StatelessWidget {
+  const _WatchlistHeader({
+    required this.canClearAll,
+    required this.onClearAll,
   });
 
-  final WatchStatusFilter filter;
-  final ValueChanged<WatchStatusFilter> onFilterChanged;
+  final bool canClearAll;
+  final VoidCallback onClearAll;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text(
-          'قفسه‌ی فیلم‌هام:',
-          style: TextStyle(
-            fontFamily: 'vazir',
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            height: 30 / 24,
-            letterSpacing: -0.15,
-            color: Colors.white,
+        const Expanded(
+          child: Text(
+            'علاقه مندی ها',
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              fontFamily: 'vazir',
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              height: 30 / 24,
+              letterSpacing: -0.15,
+              color: Colors.white,
+            ),
           ),
         ),
         const SizedBox(width: 16),
-        for (final value in WatchStatusFilter.values) ...[
-          if (value != WatchStatusFilter.values.first) const SizedBox(width: 8),
-          _ShelfTab(
-            label: value.label,
-            selected: filter == value,
-            onTap: () => onFilterChanged(value),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: canClearAll ? onClearAll : null,
+            borderRadius: BorderRadius.circular(16),
+            child: Opacity(
+              opacity: canClearAll ? 1 : 0.4,
+              child: Ink(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.09),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.48),
+                  ),
+                ),
+                child: Text(
+                  'حذف تمامی علاقه مندی ها',
+                  style: TextStyle(
+                    fontFamily: 'vazir',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.18,
+                    color: Colors.white.withValues(alpha: 0.75),
+                  ),
+                ),
+              ),
+            ),
           ),
-        ],
+        ),
       ],
     );
   }
 }
 
-class _ShelfTab extends StatelessWidget {
-  const _ShelfTab({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final borderRadius = BorderRadius.circular(999);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: borderRadius,
-        child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: borderRadius,
-            border: Border.all(
-              color: selected
-                  ? Colors.white.withValues(alpha: 0.09)
-                  : Colors.white.withValues(alpha: 0.2),
-            ),
-            color: selected ? blueColor : Colors.white.withValues(alpha: 0.09),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontFamily: 'vazir',
-              fontSize: 15,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              letterSpacing: -0.18,
-              color: selected
-                  ? Colors.white
-                  : Colors.white.withValues(alpha: 0.75),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ShelfGrid extends StatelessWidget {
-  const _ShelfGrid({
+class _WatchlistGrid extends StatelessWidget {
+  const _WatchlistGrid({
     required this.items,
     required this.controller,
     required this.onDeleteTap,
@@ -299,7 +290,7 @@ class _ShelfGrid extends StatelessWidget {
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.only(bottom: 48),
-              child: _ShelfGridShimmer(itemCount: 5, shrinkWrap: true),
+              child: _WatchlistGridShimmer(itemCount: 5, shrinkWrap: true),
             ),
           ),
       ],
@@ -307,8 +298,8 @@ class _ShelfGrid extends StatelessWidget {
   }
 }
 
-class _ShelfGridShimmer extends StatelessWidget {
-  const _ShelfGridShimmer({
+class _WatchlistGridShimmer extends StatelessWidget {
+  const _WatchlistGridShimmer({
     this.itemCount = 20,
     this.shrinkWrap = false,
   });
@@ -332,14 +323,14 @@ class _ShelfGridShimmer extends StatelessWidget {
       itemCount: itemCount,
       itemBuilder: (_, _) => const Align(
         alignment: Alignment.topCenter,
-        child: _ShelfShimmerCard(),
+        child: _WatchlistShimmerCard(),
       ),
     );
   }
 }
 
-class _ShelfShimmerCard extends StatelessWidget {
-  const _ShelfShimmerCard();
+class _WatchlistShimmerCard extends StatelessWidget {
+  const _WatchlistShimmerCard();
 
   @override
   Widget build(BuildContext context) {

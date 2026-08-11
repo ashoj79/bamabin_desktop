@@ -20,6 +20,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ProfileUpdateAvatarEvent>(_onUpdateAvatar);
     on<ProfileUpdatePasswordEvent>(_onUpdatePassword);
     on<ProfileUpdatePlaybackSettingEvent>(_onUpdatePlaybackSetting);
+    on<ProfileTvRemoteLoginEvent>(_onTvRemoteLogin);
   }
 
   final UserRepository _userRepository;
@@ -269,5 +270,34 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         await _appRepository.setSubMargin(event.value);
         emit(current.copyWith(subtitleMargin: event.value));
     }
+  }
+
+  Future<void> _onTvRemoteLogin(
+    ProfileTvRemoteLoginEvent event,
+    Emitter<ProfileState> emit,
+  ) async {
+    final current = state;
+    if (current is! ProfileLoaded) return;
+
+    final token = event.token.trim();
+    if (token.isEmpty) {
+      emit(ProfileError('لطفا کد ورود تلویزیون را وارد کنید'));
+      emit(current);
+      return;
+    }
+
+    emit(ProfileBusy());
+    final result = await _userRepository.tvRemoteLogin(token);
+    if (result is DataError) {
+      final message = result.errorMessage == 'device_limit'
+          ? 'حداکثر تعداد دستگاه‌های مجاز پر شده است. یکی از دستگاه‌ها را حذف کنید.'
+          : result.errorMessage;
+      emit(ProfileError(message));
+      emit(current);
+      return;
+    }
+
+    emit(ProfileActionSuccess('ورود تلویزیون با موفقیت انجام شد'));
+    emit(current);
   }
 }

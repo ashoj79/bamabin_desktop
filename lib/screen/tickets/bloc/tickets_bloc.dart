@@ -10,6 +10,7 @@ part 'tickets_state.dart';
 class TicketsBloc extends Bloc<TicketsEvent, TicketsState> {
   TicketsBloc(this._ticketRepository) : super(TicketsInitial()) {
     on<TicketsLoadEvent>(_onLoad);
+    on<TicketsSelectListTypeEvent>(_onSelectListType);
     on<TicketsSelectDepartmentEvent>(_onSelectDepartment);
     on<TicketsCreateEvent>(_onCreate);
     on<TicketsClearFeedbackEvent>(_onClearFeedback);
@@ -18,7 +19,7 @@ class TicketsBloc extends Bloc<TicketsEvent, TicketsState> {
 
   final TicketRepository _ticketRepository;
 
-  static const _type = 'ticket';
+  static const _ticketType = 'ticket';
 
   Future<void> _onLoad(
     TicketsLoadEvent event,
@@ -26,13 +27,14 @@ class TicketsBloc extends Bloc<TicketsEvent, TicketsState> {
   ) async {
     emit(TicketsLoading());
 
-    final departmentsResult = await _ticketRepository.getDepartments(_type);
+    final departmentsResult =
+        await _ticketRepository.getDepartments(_ticketType);
     if (departmentsResult is DataError) {
       emit(TicketsError(departmentsResult.errorMessage));
       return;
     }
 
-    final ticketsResult = await _ticketRepository.getTickets(_type);
+    final ticketsResult = await _ticketRepository.getTickets(_ticketType);
     if (ticketsResult is DataError) {
       emit(TicketsError(ticketsResult.errorMessage));
       return;
@@ -42,6 +44,47 @@ class TicketsBloc extends Bloc<TicketsEvent, TicketsState> {
       TicketsLoaded(
         tickets: ticketsResult.data ?? const [],
         departments: departmentsResult.data ?? const [],
+        listType: TicketsListType.ticket,
+      ),
+    );
+  }
+
+  Future<void> _onSelectListType(
+    TicketsSelectListTypeEvent event,
+    Emitter<TicketsState> emit,
+  ) async {
+    final current = state;
+    if (current is! TicketsLoaded) return;
+    if (current.listType == event.listType && !current.isListLoading) return;
+
+    emit(
+      current.copyWith(
+        listType: event.listType,
+        isListLoading: true,
+        clearFeedback: true,
+      ),
+    );
+
+    final result =
+        await _ticketRepository.getTickets(event.listType.apiValue);
+    final latest = state;
+    if (latest is! TicketsLoaded) return;
+
+    if (result is DataError) {
+      emit(
+        latest.copyWith(
+          isListLoading: false,
+          feedbackMessage: result.errorMessage,
+          feedbackIsError: true,
+        ),
+      );
+      return;
+    }
+
+    emit(
+      latest.copyWith(
+        tickets: result.data ?? const [],
+        isListLoading: false,
       ),
     );
   }
@@ -125,7 +168,7 @@ class TicketsBloc extends Bloc<TicketsEvent, TicketsState> {
       return;
     }
 
-    final ticketsResult = await _ticketRepository.getTickets(_type);
+    final ticketsResult = await _ticketRepository.getTickets(_ticketType);
     final tickets = ticketsResult is DataSuccess
         ? (ticketsResult.data ?? current.tickets)
         : current.tickets;
@@ -135,6 +178,8 @@ class TicketsBloc extends Bloc<TicketsEvent, TicketsState> {
     emit(
       current.copyWith(
         tickets: tickets,
+        listType: TicketsListType.ticket,
+        isListLoading: false,
         isSubmitting: false,
         clearSelectedDepartment: true,
         feedbackMessage: 'تیکت با موفقیت ارسال شد',

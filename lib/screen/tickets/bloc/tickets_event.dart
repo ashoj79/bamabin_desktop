@@ -4,6 +4,12 @@ sealed class TicketsEvent {}
 
 class TicketsLoadEvent extends TicketsEvent {}
 
+class TicketsSelectListTypeEvent extends TicketsEvent {
+  TicketsSelectListTypeEvent(this.listType);
+
+  final TicketsListType listType;
+}
+
 class TicketsSelectDepartmentEvent extends TicketsEvent {
   TicketsSelectDepartmentEvent(this.departmentId);
 

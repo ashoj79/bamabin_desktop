@@ -28,6 +28,10 @@ import 'package:bamabin_desktop/screen/top250/bloc/top250_bloc.dart';
 import 'package:bamabin_desktop/screen/top250/top250_screen.dart';
 import 'package:bamabin_desktop/screen/watch_status/bloc/watch_status_bloc.dart';
 import 'package:bamabin_desktop/screen/watch_status/watch_status_screen.dart';
+import 'package:bamabin_desktop/screen/watchlist/bloc/watchlist_bloc.dart';
+import 'package:bamabin_desktop/screen/watchlist/watchlist_screen.dart';
+import 'package:bamabin_desktop/screen/recently_viewed/bloc/recently_viewed_bloc.dart';
+import 'package:bamabin_desktop/screen/recently_viewed/recently_viewed_screen.dart';
 import 'package:bamabin_desktop/utils/di.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -85,6 +89,20 @@ final GoRouter router = GoRouter(
           ),
         ),
         GoRoute(
+          path: Routes.watchlist,
+          builder: (context, state) => BlocProvider(
+            create: (_) => locator<WatchlistBloc>(),
+            child: const WatchlistScreen(),
+          ),
+        ),
+        GoRoute(
+          path: Routes.recentlyViewed,
+          builder: (context, state) => BlocProvider(
+            create: (_) => locator<RecentlyViewedBloc>(),
+            child: const RecentlyViewedScreen(),
+          ),
+        ),
+        GoRoute(
           path: Routes.watchStatusPosts,
           builder: (context, state) => BlocProvider(
             create: (_) => locator<WatchStatusBloc>(),
@@ -114,15 +132,31 @@ final GoRouter router = GoRouter(
           path: Routes.ticketDetails,
           builder: (context, state) {
             final extra = state.extra;
-            final ticketId = extra is int
-                ? extra
-                : (extra is Ticket ? extra.id : null);
+            int? ticketId;
+            var type = 'ticket';
+            if (extra is int) {
+              ticketId = extra;
+            } else if (extra is Ticket) {
+              ticketId = extra.id;
+            } else if (extra is Map) {
+              final idValue = extra['id'];
+              if (idValue is int) {
+                ticketId = idValue;
+              } else if (idValue is String) {
+                ticketId = int.tryParse(idValue);
+              }
+              final typeValue = extra['type'];
+              if (typeValue is String && typeValue.isNotEmpty) {
+                type = typeValue;
+              }
+            }
             if (ticketId == null) {
               return const MainPlaceholderPage(title: 'جزئیات تیکت');
             }
+            final id = ticketId;
             return BlocProvider(
               create: (_) => locator<TicketDetailsBloc>()
-                ..add(TicketDetailsLoadEvent(ticketId)),
+                ..add(TicketDetailsLoadEvent(id, type: type)),
               child: const TicketDetailsScreen(),
             );
           },

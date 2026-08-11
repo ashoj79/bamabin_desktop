@@ -2,25 +2,30 @@ import 'package:bamabin_desktop/config/color.dart';
 import 'package:bamabin_desktop/core/routes.dart';
 import 'package:bamabin_desktop/core/widgets/bamabin_snackbar.dart';
 import 'package:bamabin_desktop/core/widgets/loading_widget.dart';
+import 'package:bamabin_desktop/data/local/temp_db.dart';
 import 'package:bamabin_desktop/data/remote/model/app/gateway.dart';
 import 'package:bamabin_desktop/data/remote/model/app/plan.dart';
+import 'package:bamabin_desktop/data/remote/model/user/vip_info.dart';
 import 'package:bamabin_desktop/screen/subscription/bloc/subscription_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const _subBg = Color(0xFF0A0A12);
-const _subSurface = Color(0xFF14141F);
-const _subMuted = Color(0xFFA8AABB);
-const _subInk = Color(0xFFF4F4F8);
-const _subSubtle = Color(0xFF6F7182);
-const _subLabel = Color(0xFFC9CBDB);
+const _subBg = Color(0xFF0C0C14);
+const _subSurface = Color(0xFF131321);
+const _subInk = Color(0xFFFFFFFF);
+const _subMuted = Color(0x7AFFFFFF);
+const _subSubtle = Color(0x99FFFFFF);
+const _subLabel = Color(0xBFFFFFFF);
+const _subBorder = Color(0x17FFFFFF);
+const _subBorderStrong = Color(0x5CFFFFFF);
 const _subSuccess = Color(0xFF4ADE80);
-const _subAmber = Color(0xFFF59E0B);
-const _subAmberEnd = Color(0xFFFB923C);
+const _subSuccessBg = Color(0x1A22C55E);
+const _subSuccessBorder = Color(0x804ADE80);
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -81,11 +86,19 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     _gatewayDialogOpen = false;
   }
 
+  void _goBack() {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(Routes.profile);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _subBg,
-      body: BlocConsumer<SubscriptionBloc, SubscriptionState>(
+    return ColoredBox(
+      color: _subBg,
+      child: BlocConsumer<SubscriptionBloc, SubscriptionState>(
         listenWhen: (previous, current) {
           if (current is! SubscriptionLoaded) return false;
           if (previous is! SubscriptionLoaded) {
@@ -132,13 +145,23 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(state.message, style: const TextStyle(color: _subMuted)),
+                  Text(
+                    state.message,
+                    style: TextStyle(
+                      fontFamily: 'vazir',
+                      fontSize: 14,
+                      color: Colors.white.withValues(alpha: 0.6),
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () => context.read<SubscriptionBloc>().add(
                       SubscriptionLoadEvent(),
                     ),
-                    child: const Text('تلاش مجدد'),
+                    child: Text(
+                      'تلاش مجدد',
+                      style: TextStyle(color: blueColor),
+                    ),
                   ),
                 ],
               ),
@@ -150,38 +173,19 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           }
 
           return ListView(
-            padding: const EdgeInsets.fromLTRB(40, 28, 40, 90),
+            padding: const EdgeInsets.fromLTRB(32, 16, 32, 48),
             children: [
               Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 960),
+                  constraints: const BoxConstraints(maxWidth: 1001),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _Header(
-                        onBack: () {
-                          if (context.canPop()) {
-                            context.pop();
-                          } else {
-                            context.go(Routes.profile);
-                          }
-                        },
+                      _TitleRow(
+                        vip: TempDb.vipInfo.value,
+                        onBack: _goBack,
                       ),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'تمدید اشتراک',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: _subInk,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        state.vipLabel,
-                        style: const TextStyle(fontSize: 14, color: _subMuted),
-                      ),
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 32),
                       _DiscountRow(
                         controller: _discountController,
                         isVerifying: state.isVerifyingDiscount,
@@ -192,7 +196,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
                       if (state.plans.isEmpty)
                         Container(
                           height: 120,
@@ -200,37 +204,33 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           decoration: BoxDecoration(
                             color: _subSurface,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.06),
+                            border: Border.all(color: _subBorder),
+                          ),
+                          child: Text(
+                            'پلنی برای نمایش وجود ندارد',
+                            style: TextStyle(
+                              fontFamily: 'vazir',
+                              fontSize: 14,
+                              color: Colors.white.withValues(alpha: 0.6),
                             ),
                           ),
-                          child: const Text(
-                            'پلنی برای نمایش وجود ندارد',
-                            style: TextStyle(color: _subMuted),
-                          ),
                         )
-                      else ...[
+                      else
                         for (var i = 0; i < state.plans.length; i++) ...[
-                          if (i > 0) const SizedBox(height: 14),
+                          if (i > 0) const SizedBox(height: 16),
                           _PlanCard(
                             plan: state.plans[i],
                             selected: i == state.selectedIndex,
                             codeDiscountPrice:
                                 state.discountedPrices[state.plans[i].id],
-                            accentPrimary: i == 0 ? blueColor : _subAmber,
-                            accentSecondary: i == 0
-                                ? desktopAccentDarkColor
-                                : _subAmberEnd,
                             onTap: () => context.read<SubscriptionBloc>().add(
                               SubscriptionSelectPlanEvent(index: i),
                             ),
                           ),
                         ],
-                      ],
                       if (state.plans.isNotEmpty) ...[
-                        const SizedBox(height: 24),
-                        Align(
-                          alignment: Alignment.center,
+                        const SizedBox(height: 32),
+                        Center(
                           child: ElevatedButton(
                             onPressed: state.selectedPlan == null
                                 ? null
@@ -242,33 +242,36 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                 alpha: 0.35,
                               ),
                               elevation: 0,
-                              minimumSize: const Size(220, 48),
+                              minimumSize: const Size(0, 54),
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 28,
+                                horizontal: 32,
+                                vertical: 12,
                               ),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(16),
+                                side: const BorderSide(color: _subBorder),
                               ),
                               textStyle: const TextStyle(
-                                fontFamily: 'dana',
-                                fontSize: 15,
+                                fontFamily: 'vazir',
+                                fontSize: 16,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                             child: const Text('پرداخت و تمدید اشتراک'),
                           ),
                         ),
-                      ],
-                      const SizedBox(height: 20),
-                      const Text(
-                        'خرید اشتراک به معنای پذیرش قوانین بامابین است',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: _subInk,
+                        const SizedBox(height: 12),
+                        Text(
+                          'خرید اشتراک به معنای پذیرش قوانین بامابین است.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontFamily: 'vazir',
+                            fontSize: 16,
+                            height: 22 / 16,
+                            color: Colors.white.withValues(alpha: 0.8),
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -281,43 +284,120 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header({required this.onBack});
+class _TitleRow extends StatelessWidget {
+  const _TitleRow({required this.vip, required this.onBack});
 
+  final VipInfo vip;
   final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Image.asset('assets/img/small_logo.png', width: 38, height: 38),
-        const SizedBox(width: 12),
-        const Text(
-          'بامابین',
-          style: TextStyle(
-            fontSize: 21,
-            fontWeight: FontWeight.w800,
-            color: _subInk,
-            letterSpacing: 0.3,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'تمدید اشتراک',
+                textAlign: TextAlign.start,
+                style: TextStyle(
+                  fontFamily: 'vazir',
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  height: 32 / 24,
+                  color: _subInk,
+                ),
+              ),
+              const SizedBox(height: 10),
+              if (vip.isVip)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.start,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    _StatusTag(label: 'اشتراک پرو فعال است'),
+                    Text(
+                      '.',
+                      style: TextStyle(
+                        fontFamily: 'vazir',
+                        fontSize: 20,
+                        color: Colors.white.withValues(alpha: 0.48),
+                      ),
+                    ),
+                    _StatusTag(label: '${vip.days} روز باقی مانده است'),
+                  ],
+                )
+              else
+                Text(
+                  'اشتراک فعالی ندارید',
+                  textAlign: TextAlign.start,
+                  style: TextStyle(
+                    fontFamily: 'vazir',
+                    fontSize: 16,
+                    color: Colors.white.withValues(alpha: 0.48),
+                  ),
+                ),
+            ],
           ),
         ),
-        const Spacer(),
+        const SizedBox(width: 24),
         TextButton(
           onPressed: onBack,
           style: TextButton.styleFrom(
-            foregroundColor: _subLabel,
-            textStyle: const TextStyle(fontFamily: 'dana', fontSize: 14.5),
+            foregroundColor: _subInk,
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            textStyle: const TextStyle(
+              fontFamily: 'vazir',
+              fontSize: 16,
+              height: 22 / 16,
+            ),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('بازگشت به پروفایل'),
-              SizedBox(width: 8),
-              Text('←'),
+              const Text('بازگشت به پروفایل'),
+              const SizedBox(width: 8),
+              SvgPicture.asset(
+                'assets/img/arrow_left.svg',
+                width: 20,
+                height: 20,
+              ),
             ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class _StatusTag extends StatelessWidget {
+  const _StatusTag({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: _subSuccessBg,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: _subSuccessBorder),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontFamily: 'vazir',
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: _subSuccess,
+        ),
+      ),
     );
   }
 }
@@ -341,11 +421,16 @@ class _DiscountRow extends StatelessWidget {
       children: [
         Expanded(
           child: SizedBox(
-            height: 48,
+            height: 54,
             child: TextField(
               controller: controller,
               enabled: !isVerifying,
-              style: const TextStyle(fontSize: 14, color: _subInk),
+              textAlign: TextAlign.start,
+              style: const TextStyle(
+                fontFamily: 'vazir',
+                fontSize: 16,
+                color: _subInk,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.deny(RegExp(r'\s')),
               ],
@@ -353,65 +438,69 @@ class _DiscountRow extends StatelessWidget {
                 if (!isVerifying) onApply();
               },
               decoration: InputDecoration(
-                hintText: 'کد تخفیف دارید؟ اینجا وارد کنید',
-                hintStyle: const TextStyle(color: _subSubtle, fontSize: 14),
+                hintText: 'کد تخفیف دارید؟ اینجا وارد کنید ...',
+                hintStyle: TextStyle(
+                  fontFamily: 'vazir',
+                  fontSize: 16,
+                  color: Colors.white.withValues(alpha: 0.36),
+                ),
                 filled: true,
-                fillColor: _subSurface,
+                fillColor: Colors.white.withValues(alpha: 0.09),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.08),
-                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: _subBorderStrong),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide(
                     color: isApplied
                         ? _subSuccess.withValues(alpha: 0.45)
-                        : Colors.white.withValues(alpha: 0.08),
+                        : _subBorderStrong,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide(
-                    color: blueColor.withValues(alpha: 0.5),
+                    color: blueColor.withValues(alpha: 0.6),
                   ),
                 ),
                 disabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.08),
-                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: _subBorderStrong),
                 ),
               ),
             ),
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 12),
         SizedBox(
-          height: 48,
+          height: 54,
           child: OutlinedButton(
             onPressed: isVerifying ? null : onApply,
             style: OutlinedButton.styleFrom(
               foregroundColor: _subLabel,
-              disabledForegroundColor: _subSubtle,
-              side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-              padding: const EdgeInsets.symmetric(horizontal: 22),
+              disabledForegroundColor: _subMuted,
+              backgroundColor: Colors.white.withValues(alpha: 0.09),
+              side: const BorderSide(color: _subBorderStrong),
+              padding: const EdgeInsets.symmetric(horizontal: 32),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
               ),
               textStyle: const TextStyle(
-                fontFamily: 'dana',
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontFamily: 'vazir',
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
               ),
             ),
             child: isVerifying
-                ? const SizedBox(
+                ? SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: blueColor,
+                    ),
                   )
                 : Text(isApplied ? 'اعمال مجدد' : 'اعمال کد'),
           ),
@@ -426,16 +515,12 @@ class _PlanCard extends StatelessWidget {
     required this.plan,
     required this.selected,
     required this.codeDiscountPrice,
-    required this.accentPrimary,
-    required this.accentSecondary,
     required this.onTap,
   });
 
   final Plan plan;
   final bool selected;
   final int? codeDiscountPrice;
-  final Color accentPrimary;
-  final Color accentSecondary;
   final VoidCallback onTap;
 
   int get _months {
@@ -458,118 +543,73 @@ class _PlanCard extends StatelessWidget {
     return display < plan.price;
   }
 
+  String get _fallbackIconAsset {
+    final months = _months;
+    if (months <= 1) return 'assets/img/subscription/ic_plan_bike.svg';
+    if (months == 2) return 'assets/img/subscription/ic_plan_moto.svg';
+    if (months <= 3) return 'assets/img/subscription/ic_plan_car.svg';
+    if (months <= 6) return 'assets/img/subscription/ic_plan_jet.svg';
+    return 'assets/img/subscription/ic_plan_rocket.svg';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? const Color(0xFF1A1A2A) : _subSurface,
+      color: _subSurface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: selected ? blueColor : Colors.white.withValues(alpha: 0.06),
-          width: selected ? 1.5 : 1,
+          color: selected ? _subBorderStrong : _subBorder,
+          width: selected ? 2 : 1,
         ),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        hoverColor: const Color(0xFF1A1A2A),
+        hoverColor: Colors.white.withValues(alpha: 0.04),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
-          child: Wrap(
-            spacing: 16,
-            runSpacing: 12,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            alignment: WrapAlignment.spaceBetween,
+          padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+          child: Row(
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '✦',
-                        style: TextStyle(color: accentPrimary, fontSize: 15),
-                      ),
-                      const SizedBox(width: 6),
-                      Container(
-                        width: 34,
-                        height: 34,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [accentPrimary, accentSecondary],
-                          ),
-                        ),
-                        alignment: Alignment.center,
-                        child: plan.iconUrl.isNotEmpty
-                            ? ClipOval(
-                                child: CachedNetworkImage(
-                                  imageUrl: plan.iconUrl,
-                                  width: 34,
-                                  height: 34,
-                                  fit: BoxFit.cover,
-                                  errorWidget: (_, _, _) => Text(
-                                    '$_months',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ),
-                              )
-                            : Text(
-                                '$_months',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 13,
-                                ),
-                              ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 14),
-                  Text(
-                    plan.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: _subInk,
-                    ),
-                  ),
-                ],
+              _PlanIcon(
+                iconUrl: plan.iconUrl,
+                fallbackAsset: _fallbackIconAsset,
               ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (_showStrike) ...[
-                    Text(
-                      _formatToman(plan.price),
-                      style: const TextStyle(
-                        fontSize: 13.5,
-                        color: _subSubtle,
-                        decoration: TextDecoration.lineThrough,
-                        decorationColor: _subSubtle,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    _PriceBadge(
-                      text: _formatToman(_displayPrice),
-                      background: _subSuccess.withValues(alpha: 0.06),
-                      border: _subSuccess.withValues(alpha: 0.4),
-                      foreground: _subSuccess,
-                    ),
-                  ] else
-                    _PriceBadge(
-                      text: _formatToman(_displayPrice),
-                      background: blueColor.withValues(alpha: 0.1),
-                      border: blueColor.withValues(alpha: 0.4),
-                      foreground: blueColor,
-                    ),
-                ],
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  plan.name,
+                  textAlign: TextAlign.start,
+                  style: const TextStyle(
+                    fontFamily: 'vazir',
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
+                    height: 24 / 20,
+                    color: _subInk,
+                  ),
+                ),
               ),
+              const SizedBox(width: 16),
+              if (_showStrike) ...[
+                Text(
+                  _formatToman(plan.price),
+                  style: const TextStyle(
+                    fontFamily: 'vazir',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    height: 22 / 16,
+                    color: _subSubtle,
+                    decoration: TextDecoration.lineThrough,
+                    decorationColor: _subSubtle,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                _PriceBadge(text: _formatToman(_displayPrice)),
+              ] else
+                _PriceBadge(
+                  text: _formatToman(_displayPrice),
+                  useBlue: true,
+                ),
             ],
           ),
         ),
@@ -578,32 +618,71 @@ class _PlanCard extends StatelessWidget {
   }
 }
 
-class _PriceBadge extends StatelessWidget {
-  const _PriceBadge({
-    required this.text,
-    required this.background,
-    required this.border,
-    required this.foreground,
-  });
+class _PlanIcon extends StatelessWidget {
+  const _PlanIcon({required this.iconUrl, required this.fallbackAsset});
 
-  final String text;
-  final Color background;
-  final Color border;
-  final Color foreground;
+  final String iconUrl;
+  final String fallbackAsset;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      width: 54,
+      height: 54,
+      decoration: BoxDecoration(
+        color: const Color(0x5C131321),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0x0FFFFFFF)),
+      ),
+      alignment: Alignment.center,
+      child: iconUrl.isNotEmpty
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: CachedNetworkImage(
+                imageUrl: iconUrl,
+                width: 30,
+                height: 30,
+                fit: BoxFit.contain,
+                errorWidget: (_, _, _) => SvgPicture.asset(
+                  fallbackAsset,
+                  width: 30,
+                  height: 30,
+                ),
+              ),
+            )
+          : SvgPicture.asset(fallbackAsset, width: 30, height: 30),
+    );
+  }
+}
+
+class _PriceBadge extends StatelessWidget {
+  const _PriceBadge({required this.text, this.useBlue = false});
+
+  final String text;
+  final bool useBlue;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = useBlue ? blueColor : _subSuccess;
+    final background = useBlue
+        ? blueColor.withValues(alpha: 0.1)
+        : _subSuccessBg;
+    final border = useBlue
+        ? blueColor.withValues(alpha: 0.4)
+        : _subSuccessBorder;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: border),
       ),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 14.5,
+          fontFamily: 'vazir',
+          fontSize: 16,
           fontWeight: FontWeight.w700,
           color: foreground,
         ),

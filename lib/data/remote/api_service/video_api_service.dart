@@ -1,6 +1,7 @@
 import 'package:bamabin_desktop/data/remote/api_service/base_api_service.dart';
 import 'package:bamabin_desktop/data/remote/model/api_response.dart';
 import 'package:bamabin_desktop/data/remote/model/comment/comment.dart';
+import 'package:bamabin_desktop/data/remote/model/user/play_status.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/user_list.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/home_sections.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/like_info.dart';
@@ -137,10 +138,13 @@ class VideoApiService extends BaseApiService {
     );
   }
 
-  Future<ApiResponse<List<Post>>> getRecentlyViewed(int page) async {
+  Future<ApiResponse<List<PlayStatus>>> getRecentlyViewed(int page) async {
     return await get(
       '/recently_viewed',
-      (json) => List<Post>.from(json.map((x) => Post.fromJson(x))),
+      (json) => List<PlayStatus>.generate(
+        json.length,
+        (index) => PlayStatus.fromJson(json[index] as Map<String, dynamic>),
+      ),
       queryParameters: {'page': page},
     );
   }

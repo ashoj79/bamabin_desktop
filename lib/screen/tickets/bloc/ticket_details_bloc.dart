@@ -15,15 +15,17 @@ class TicketDetailsBloc extends Bloc<TicketDetailsEvent, TicketDetailsState> {
 
   final TicketRepository _ticketRepository;
 
-  static const _type = 'ticket';
+  String _type = 'ticket';
 
   Future<void> _onLoad(
     TicketDetailsLoadEvent event,
     Emitter<TicketDetailsState> emit,
   ) async {
+    _type = event.type;
     emit(TicketDetailsLoading());
 
-    final result = await _ticketRepository.getTicketDetails(_type, event.ticketId);
+    final result =
+        await _ticketRepository.getTicketDetails(_type, event.ticketId);
     if (result is DataError) {
       emit(TicketDetailsError(result.errorMessage));
       return;

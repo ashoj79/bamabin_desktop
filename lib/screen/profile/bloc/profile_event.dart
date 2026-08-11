@@ -69,3 +69,9 @@ final class ProfileUpdatePlaybackSettingEvent extends ProfileEvent {
   final ProfilePlaybackSetting setting;
   final int value;
 }
+
+final class ProfileTvRemoteLoginEvent extends ProfileEvent {
+  ProfileTvRemoteLoginEvent({required this.token});
+
+  final String token;
+}

@@ -4,6 +4,7 @@ import 'package:bamabin_desktop/data/local/database/model/watched_movie.dart';
 import 'package:bamabin_desktop/data/local/database/model/watching_episode.dart';
 import 'package:bamabin_desktop/data/remote/api_service/video_api_service.dart';
 import 'package:bamabin_desktop/data/remote/model/comment/comment.dart';
+import 'package:bamabin_desktop/data/remote/model/user/play_status.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/home_sections.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/like_info.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/post_details.dart';
@@ -319,7 +320,7 @@ class VideoRepository {
     }
   }
 
-  Future<DataState<List<Post>>> getRecentlyViewed(int page) async {
+  Future<DataState<List<PlayStatus>>> getRecentlyViewed(int page) async {
     final response = await _videoApiService.getRecentlyViewed(page);
     if (response.status) {
       return DataSuccess(response.data);

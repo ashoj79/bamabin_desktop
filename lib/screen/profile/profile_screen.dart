@@ -14,6 +14,7 @@ import 'package:bamabin_desktop/screen/profile/bloc/profile_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
@@ -29,7 +30,7 @@ const _profileDanger = Color(0xFFF2536B);
 const _profileSuccess = Color(0xFF4ADE80);
 const _maxDevices = 4;
 
-enum _ProfileTab { overview, edit, settings, playback }
+enum _ProfileTab { overview, edit, settings, playback, tvLogin }
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -297,6 +298,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               () => _autoplayNext = !_autoplayNext,
                             ),
                           ),
+                        _ProfileTab.tvLogin => const _TvLoginTab(),
                       },
                     ],
                   ),
@@ -559,12 +561,7 @@ class _TabPills extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(999),
-              gradient: active
-                  ? LinearGradient(
-                      colors: [blueColor, desktopAccentDarkColor],
-                    )
-                  : null,
-              color: active ? null : _profileSurface,
+              color: active ? blueColor : _profileSurface,
               border: active
                   ? null
                   : Border.all(color: Colors.white.withValues(alpha: 0.08)),
@@ -590,6 +587,7 @@ class _TabPills extends StatelessWidget {
         pill('ویرایش اطلاعات', _ProfileTab.edit),
         pill('امنیت و تنظیمات', _ProfileTab.settings),
         pill('تنظیمات پخش', _ProfileTab.playback),
+        pill('ورود تلویزیون', _ProfileTab.tvLogin),
       ],
     );
   }
@@ -1714,6 +1712,137 @@ class _PlaybackPrefs {
     final index = labels.indexOf(label);
     if (index < 0) return values[1];
     return values[index];
+  }
+}
+
+class _TvLoginTab extends StatefulWidget {
+  const _TvLoginTab();
+
+  @override
+  State<_TvLoginTab> createState() => _TvLoginTabState();
+}
+
+class _TvLoginTabState extends State<_TvLoginTab> {
+  final _codeController = TextEditingController();
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    FocusScope.of(context).unfocus();
+    context.read<ProfileBloc>().add(
+      ProfileTvRemoteLoginEvent(token: _codeController.text),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<ProfileBloc, ProfileState>(
+      listenWhen: (previous, current) => current is ProfileActionSuccess,
+      listener: (context, state) {
+        if (state is ProfileActionSuccess &&
+            state.message.contains('ورود تلویزیون')) {
+          _codeController.clear();
+        }
+      },
+      child: _SettingsCard(
+        title: 'ورود با کد تلویزیون',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'کد نمایش‌داده‌شده روی تلویزیون را وارد کنید تا حساب شما روی آن دستگاه وارد شود.',
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.7,
+                color: _profileMuted,
+              ),
+            ),
+            const SizedBox(height: 22),
+            const Text(
+              'کد ورود',
+              style: TextStyle(fontSize: 13.5, color: _profileMuted),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 46,
+              child: TextField(
+                controller: _codeController,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: 'vazir',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 2,
+                  color: _profileInk,
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                ],
+                onSubmitted: (_) => _submit(),
+                decoration: InputDecoration(
+                  hintText: 'کد را وارد کنید',
+                  hintStyle: TextStyle(
+                    fontFamily: 'vazir',
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0,
+                    color: _profileSubtle,
+                  ),
+                  filled: true,
+                  fillColor: _profileField,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Colors.white.withValues(alpha: 0.08),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Colors.white.withValues(alpha: 0.08),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: blueColor.withValues(alpha: 0.55),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: ElevatedButton(
+                onPressed: _submit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: blueColor,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  minimumSize: const Size(0, 44),
+                  padding: const EdgeInsets.symmetric(horizontal: 26),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  textStyle: const TextStyle(
+                    fontFamily: 'dana',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                child: const Text('تأیید و ورود تلویزیون'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

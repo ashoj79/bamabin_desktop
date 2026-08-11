@@ -35,12 +35,12 @@ class _MainSidebarState extends State<MainSidebar> {
     _SidebarItem(
       title: 'مشاهده های اخیر',
       iconAsset: 'assets/img/sidebar/ic_eye.svg',
-      route: Routes.watchStatusPosts,
+      route: Routes.recentlyViewed,
     ),
     _SidebarItem(
       title: 'قفسه بامابین',
       iconAsset: 'assets/img/sidebar/ic_server.svg',
-      route: Routes.genresList,
+      route: Routes.watchStatusPosts,
     ),
     _SidebarItem(
       title: 'لیست های من',
@@ -88,6 +88,8 @@ class _MainSidebarState extends State<MainSidebar> {
     Routes.genresList,
     Routes.subscription,
     Routes.profile,
+    Routes.watchlist,
+    Routes.recentlyViewed,
     Routes.watchStatusPosts,
     Routes.downloadManager,
     Routes.tickets,
