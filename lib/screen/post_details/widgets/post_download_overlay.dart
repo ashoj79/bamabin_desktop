@@ -2,6 +2,7 @@ import 'package:bamabin_desktop/config/color.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/post_details.dart';
 import 'package:bamabin_desktop/screen/download_manager/bloc/download_manager_bloc.dart';
 import 'package:bamabin_desktop/screen/download_manager/bloc/download_manager_event.dart';
+import 'package:bamabin_desktop/screen/download_manager/widgets/download_or_copy_dialog.dart';
 import 'package:bamabin_desktop/screen/post_details/widgets/post_media_access_guard.dart';
 import 'package:bamabin_desktop/utils/di.dart';
 import 'package:flutter/material.dart';
@@ -207,6 +208,26 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
     );
   }
 
+  Future<void> _onDownloadOptionSelected(
+    MovieInfo info, {
+    String? seasonName,
+    int? episodeNumber,
+  }) async {
+    final action = await showDownloadOrCopyDialog(context);
+    if (!mounted || action == null) return;
+
+    switch (action) {
+      case DownloadOrCopyAction.download:
+        await _enqueueDownload(
+          info,
+          seasonName: seasonName,
+          episodeNumber: episodeNumber,
+        );
+      case DownloadOrCopyAction.copy:
+        await _copyLink(info.link);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final maxHeight = MediaQuery.sizeOf(context).height * 0.88;
@@ -303,9 +324,8 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
                   _MovieQualityItem(
                     info: sections[i].items[j],
                     type: sections[i].type,
-                    onDownload: () =>
-                        _enqueueDownload(sections[i].items[j]),
-                    onCopy: () => _copyLink(sections[i].items[j].link),
+                    onSelect: () =>
+                        _onDownloadOptionSelected(sections[i].items[j]),
                   ),
                 ],
               ],
@@ -406,7 +426,7 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
                             ? episode.size
                             : quality.size,
                       );
-                      _enqueueDownload(
+                      _onDownloadOptionSelected(
                         enriched,
                         seasonName: seasonName,
                         episodeNumber: episodeNumber,
@@ -702,14 +722,12 @@ class _MovieQualityItem extends StatelessWidget {
   const _MovieQualityItem({
     required this.info,
     required this.type,
-    required this.onDownload,
-    required this.onCopy,
+    required this.onSelect,
   });
 
   final MovieInfo info;
   final MovieType type;
-  final VoidCallback onDownload;
-  final VoidCallback onCopy;
+  final VoidCallback onSelect;
 
   @override
   Widget build(BuildContext context) {
@@ -757,23 +775,11 @@ class _MovieQualityItem extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _PrimaryActionButton(
-                  label: 'دانلود',
-                  iconAsset: 'assets/img/download.svg',
-                  onTap: onDownload,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _OutlineActionButton(
-                  label: 'کپی لینک دانلود',
-                  onTap: onCopy,
-                ),
-              ),
-            ],
+          _PrimaryActionButton(
+            label: 'دانلود',
+            iconAsset: 'assets/img/download.svg',
+            onTap: onSelect,
+            fullWidth: true,
           ),
         ],
       ),
