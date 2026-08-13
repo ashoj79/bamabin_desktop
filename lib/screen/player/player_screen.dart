@@ -21,7 +21,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import 'package:window_manager/window_manager.dart';
 
 export 'player_args.dart';
 
@@ -257,7 +256,7 @@ class PlayerScreen extends StatefulWidget {
   State<PlayerScreen> createState() => _PlayerScreenState();
 }
 
-class _PlayerScreenState extends State<PlayerScreen> with WindowListener {
+class _PlayerScreenState extends State<PlayerScreen> {
   late Player _player;
   late VideoController _controller;
   late MovieType _type;
@@ -307,8 +306,6 @@ class _PlayerScreenState extends State<PlayerScreen> with WindowListener {
   @override
   void initState() {
     super.initState();
-    windowManager.addListener(this);
-    unawaited(_syncFullScreenState());
     BlocProvider.of<PlayerBloc>(context).add(PlayerGetSubDefaultsEvent());
     _seasonIndex = widget.args.season;
     _episodeIndex = widget.args.episode;
@@ -357,7 +354,6 @@ class _PlayerScreenState extends State<PlayerScreen> with WindowListener {
 
   @override
   void dispose() {
-    windowManager.removeListener(this);
     unawaited(_exitFullScreenIfNeeded());
     unawaited(_positionSub?.cancel());
     unawaited(_durationSub?.cancel());
@@ -371,31 +367,20 @@ class _PlayerScreenState extends State<PlayerScreen> with WindowListener {
     super.dispose();
   }
 
-  Future<void> _syncFullScreenState() async {
-    final full = await windowManager.isFullScreen();
-    if (mounted) setState(() => _isWindowFullScreen = full);
-  }
-
   Future<void> _exitFullScreenIfNeeded() async {
-    if (await windowManager.isFullScreen()) {
-      await windowManager.setFullScreen(false);
-    }
+    if (!_isWindowFullScreen) return;
+    await defaultExitNativeFullscreen();
+    _isWindowFullScreen = false;
   }
 
   Future<void> _toggleFullScreen() async {
     final next = !_isWindowFullScreen;
-    await windowManager.setFullScreen(next);
+    if (next) {
+      await defaultEnterNativeFullscreen();
+    } else {
+      await defaultExitNativeFullscreen();
+    }
     if (mounted) setState(() => _isWindowFullScreen = next);
-  }
-
-  @override
-  void onWindowEnterFullScreen() {
-    if (mounted) setState(() => _isWindowFullScreen = true);
-  }
-
-  @override
-  void onWindowLeaveFullScreen() {
-    if (mounted) setState(() => _isWindowFullScreen = false);
   }
 
   void setShowController(bool value) {

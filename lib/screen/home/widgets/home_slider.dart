@@ -373,30 +373,30 @@ class _HomeSliderItem extends StatelessWidget {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    ElevatedButton.icon(
-                      onPressed: () =>
-                          context.push(Routes.postDetails, extra: post),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: blueColor,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 28,
-                          vertical: 18,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        textStyle: const TextStyle(
-                          fontFamily: 'dana',
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                      label: const Text('تماشا'),
-                    ),
-                    const SizedBox(width: 10),
+                //     ElevatedButton.icon(
+                //       onPressed: () =>
+                //           context.push(Routes.postDetails, extra: post),
+                //       style: ElevatedButton.styleFrom(
+                //         backgroundColor: blueColor,
+                //         foregroundColor: Colors.white,
+                //         elevation: 0,
+                //         padding: const EdgeInsets.symmetric(
+                //           horizontal: 28,
+                //           vertical: 18,
+                //         ),
+                //         shape: RoundedRectangleBorder(
+                //           borderRadius: BorderRadius.circular(8),
+                //         ),
+                //         textStyle: const TextStyle(
+                //           fontFamily: 'dana',
+                //           fontSize: 15,
+                //           fontWeight: FontWeight.w600,
+                //         ),
+                //       ),
+                //       icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                //       label: const Text('تماشا'),
+                //     ),
+                //     const SizedBox(width: 10),
                     OutlinedButton(
                       onPressed: () =>
                           context.push(Routes.postDetails, extra: post),
