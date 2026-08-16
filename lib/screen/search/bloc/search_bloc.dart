@@ -92,6 +92,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     on<SearchResetEvent>(_onReset);
     on<SearchQueryEvent>(_onQuery);
     on<SearchFiltersSubmitEvent>(_onFiltersSubmit);
+    on<SearchOrderChangedEvent>(_onOrderChanged);
     on<SearchLoadMoreEvent>(_onLoadMore);
   }
 
@@ -155,6 +156,20 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     _filters = event.filters;
     _lastQuery = event.query.trim();
     _allowShortQuery = true;
+    _page = 0;
+    _posts = [];
+    _isEnd = false;
+    emit(SearchLoading());
+    await _fetch(emit: emit, reset: true);
+  }
+
+  Future<void> _onOrderChanged(
+    SearchOrderChangedEvent event,
+    Emitter<SearchState> emit,
+  ) async {
+    _filters = _filters.copyWith(orderBy: event.orderBy);
+    if (!_canSearch) return;
+
     _page = 0;
     _posts = [];
     _isEnd = false;

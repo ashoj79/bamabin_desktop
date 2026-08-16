@@ -14,6 +14,7 @@ import 'package:bamabin_desktop/repository/video_repository.dart';
 import 'package:bamabin_desktop/screen/player/bloc/player_bloc.dart';
 import 'package:bamabin_desktop/screen/player/player_args.dart';
 import 'package:bamabin_desktop/screen/player/widgets/player_dialogs.dart';
+import 'package:bamabin_desktop/screen/player/widgets/player_seasons_dialog.dart';
 import 'package:bamabin_desktop/screen/player/widgets/player_settings_panel.dart';
 import 'package:bamabin_desktop/utils/di.dart';
 import 'package:file_picker/file_picker.dart';
@@ -986,30 +987,17 @@ class _PlayerScreenState extends State<PlayerScreen> {
     }
   }
 
-  Map<int, List<SeasonEpisode>> _seasonEpisodesMap() {
-    final seasons = widget.args.data.seasons!;
-    final map = <int, List<SeasonEpisode>>{};
-    for (var si = 0; si < seasons.length; si++) {
-      map[si + 1] = seasons[si].items.getAllEpisodeItemsByOrder(
-        _type,
-      );
-    }
-    return map;
-  }
-
   Future<void> _showSeasonsDialog() async {
     if (!widget.args.data.isSeries) return;
     final seasons = widget.args.data.seasons;
     if (seasons == null || seasons.isEmpty) return;
 
-    final map = _seasonEpisodesMap();
-    if (map.isEmpty) return;
-
     await PlayerSeasonsAlert.show(
       context,
-      data: map,
+      seasons: seasons,
       currentSeason: _seasonIndex,
       currentEpisode: _episodeIndex,
+      currentType: _type,
       onEpisodeSelected: (seasonIndex, episodeIndex, type) {
         _onEpisodeSelected(seasonIndex, episodeIndex, type);
       },

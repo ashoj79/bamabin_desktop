@@ -21,4 +21,10 @@ final class SearchFiltersSubmitEvent extends SearchEvent {
   final SearchFilters filters;
 }
 
+final class SearchOrderChangedEvent extends SearchEvent {
+  SearchOrderChangedEvent(this.orderBy);
+
+  final String orderBy;
+}
+
 final class SearchLoadMoreEvent extends SearchEvent {}

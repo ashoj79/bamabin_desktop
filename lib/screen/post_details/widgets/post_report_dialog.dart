@@ -182,6 +182,7 @@ class _PostReportDialogState extends State<_PostReportDialog> {
                           color: blueColor,
                           borderRadius: BorderRadius.circular(12),
                           child: InkWell(
+                            mouseCursor: SystemMouseCursors.click,
                             onTap: state.isSubmitting
                                 ? null
                                 : () => context
@@ -246,6 +247,7 @@ class _CloseButton extends StatelessWidget {
       color: Colors.white.withValues(alpha: 0.09),
       shape: const CircleBorder(),
       child: InkWell(
+        mouseCursor: SystemMouseCursors.click,
         customBorder: const CircleBorder(),
         onTap: onTap,
         child: SizedBox(

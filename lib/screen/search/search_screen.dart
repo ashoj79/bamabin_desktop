@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:bamabin_desktop/config/color.dart';
 import 'package:bamabin_desktop/core/widgets/post_widget.dart';
@@ -86,6 +87,13 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() => _showAdvanced = !_showAdvanced);
   }
 
+  void _onOrderChanged(String orderBy) {
+    setState(() {
+      _filters = _filters.copyWith(orderBy: orderBy);
+    });
+    context.read<SearchBloc>().add(SearchOrderChangedEvent(orderBy));
+  }
+
   void _onAdvancedSubmit(SearchFilters filters) {
     setState(() {
       _filters = filters;
@@ -120,8 +128,10 @@ class _SearchScreenState extends State<SearchScreen> {
                 _SearchBarRow(
                   controller: _controller,
                   advancedOpen: _showAdvanced,
+                  orderBy: _filters.orderBy,
                   onChanged: _onQueryChanged,
                   onSettingsTap: _toggleAdvanced,
+                  onOrderChanged: _onOrderChanged,
                 ),
                 const SizedBox(height: 32),
                 Expanded(
@@ -213,13 +223,17 @@ class _SearchBarRow extends StatelessWidget {
     required this.controller,
     required this.onChanged,
     required this.onSettingsTap,
+    required this.onOrderChanged,
     required this.advancedOpen,
+    required this.orderBy,
   });
 
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
   final VoidCallback onSettingsTap;
+  final ValueChanged<String> onOrderChanged;
   final bool advancedOpen;
+  final String orderBy;
 
   @override
   Widget build(BuildContext context) {
@@ -230,6 +244,11 @@ class _SearchBarRow extends StatelessWidget {
             controller: controller,
             onChanged: onChanged,
           ),
+        ),
+        const SizedBox(width: 12),
+        _SearchSortDropdown(
+          orderBy: orderBy,
+          onChanged: onOrderChanged,
         ),
         const SizedBox(width: 12),
         Material(
@@ -259,6 +278,219 @@ class _SearchBarRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SearchSortDropdown extends StatefulWidget {
+  const _SearchSortDropdown({
+    required this.orderBy,
+    required this.onChanged,
+  });
+
+  final String orderBy;
+  final ValueChanged<String> onChanged;
+
+  static const _orders = <String, String>{
+    'date': 'جدیدترین ها',
+    'modified': 'به‌روزترین',
+    'release': 'سال انتشار',
+    'imdb_rate': 'امتیاز IMDb',
+    'popular': 'محبوب‌ترین',
+  };
+
+  @override
+  State<_SearchSortDropdown> createState() => _SearchSortDropdownState();
+}
+
+class _SearchSortDropdownState extends State<_SearchSortDropdown> {
+  final _menuController = MenuController();
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = _SearchSortDropdown._orders[widget.orderBy] ??
+        _SearchSortDropdown._orders['date']!;
+    final open = _menuController.isOpen;
+
+    return MenuAnchor(
+      controller: _menuController,
+      alignmentOffset: const Offset(0, 8),
+      style: const MenuStyle(
+        backgroundColor: WidgetStatePropertyAll(Colors.transparent),
+        shadowColor: WidgetStatePropertyAll(Colors.transparent),
+        surfaceTintColor: WidgetStatePropertyAll(Colors.transparent),
+        padding: WidgetStatePropertyAll(EdgeInsets.zero),
+        elevation: WidgetStatePropertyAll(0),
+      ),
+      onOpen: () => setState(() {}),
+      onClose: () => setState(() {}),
+      menuChildren: [
+        _SearchSortMenu(
+          orderBy: widget.orderBy,
+          onSelected: (key) {
+            _menuController.close();
+            widget.onChanged(key);
+          },
+        ),
+      ],
+      builder: (context, controller, child) {
+        return SizedBox(
+          width: 291,
+          height: 54,
+          child: Material(
+            color: Colors.white.withValues(alpha: 0.09),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                color: open
+                    ? blueColor.withValues(alpha: 0.55)
+                    : Colors.white.withValues(alpha: 0.06),
+              ),
+            ),
+            child: InkWell(
+              onTap: () {
+                if (controller.isOpen) {
+                  controller.close();
+                } else {
+                  controller.open();
+                }
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'مرتب سازی نتایج',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          height: 22 / 16,
+                          color: Colors.white.withValues(alpha: 0.6),
+                          letterSpacing: -0.18,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      selected,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.left,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        height: 22 / 16,
+                        color: Colors.white,
+                        letterSpacing: -0.18,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SearchSortMenu extends StatelessWidget {
+  const _SearchSortMenu({
+    required this.orderBy,
+    required this.onSelected,
+  });
+
+  final String orderBy;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            width: 291,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  const Color(0xFF131321).withValues(alpha: 0.8),
+                  const Color(0xFF131321).withValues(alpha: 0.48),
+                ],
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final e in _SearchSortDropdown._orders.entries)
+                  _SearchSortMenuItem(
+                    label: e.value,
+                    selected: e.key == orderBy,
+                    onTap: () => onSelected(e.key),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchSortMenuItem extends StatelessWidget {
+  const _SearchSortMenuItem({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? blueColor.withValues(alpha: 0.16) : Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: SizedBox(
+          height: 44,
+          width: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                label,
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+                  height: 22 / 16,
+                  color: selected ? blueColor : Colors.white,
+                  letterSpacing: -0.18,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

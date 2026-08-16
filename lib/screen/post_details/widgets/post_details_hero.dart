@@ -237,6 +237,7 @@ class _HeroTopBar extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           InkWell(
+                              mouseCursor: SystemMouseCursors.click,
                               canRequestFocus: false,
                               onTap: () => context.go(Routes.profile),
                               borderRadius: BorderRadius.circular(16),
@@ -342,6 +343,7 @@ class _HeaderIconButton extends StatelessWidget {
           side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
         ),
         child: InkWell(
+          mouseCursor: SystemMouseCursors.click,
           canRequestFocus: false,
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),
@@ -481,6 +483,7 @@ class _PosterReportButton extends StatelessWidget {
         color: redColor,
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
+        mouseCursor: SystemMouseCursors.click,
         canRequestFocus: false,
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
@@ -926,6 +929,7 @@ class _VoteChip extends StatelessWidget {
           side: BorderSide(color: Colors.white.withValues(alpha: 0.28)),
         ),
         child: InkWell(
+          mouseCursor: SystemMouseCursors.click,
           canRequestFocus: false,
           onTap: enabled && !isLoading ? onTap : null,
           borderRadius: BorderRadius.circular(12),
@@ -1109,6 +1113,7 @@ class _PrimaryHeroButton extends StatelessWidget {
         color: blueColor,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
+          mouseCursor: SystemMouseCursors.click,
           canRequestFocus: false,
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),
@@ -1167,6 +1172,7 @@ class _SecondaryHeroButton extends StatelessWidget {
           side: BorderSide(color: Colors.white.withValues(alpha: 0.48)),
         ),
         child: InkWell(
+          mouseCursor: SystemMouseCursors.click,
           canRequestFocus: false,
           onTap: isLoading ? null : onTap,
           borderRadius: BorderRadius.circular(16),
@@ -1224,6 +1230,7 @@ class _IconHeroButton extends StatelessWidget {
           side: BorderSide(color: Colors.white.withValues(alpha: 0.48)),
         ),
         child: InkWell(
+          mouseCursor: SystemMouseCursors.click,
           canRequestFocus: false,
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),

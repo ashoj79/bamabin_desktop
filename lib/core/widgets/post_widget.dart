@@ -147,8 +147,11 @@ class _Poster extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final showSummary =
-        showSummaryOnHover && hovered && post.summary.isNotEmpty;
+    final yearLabel = post.releaseYear;
+    final hasYear = yearLabel.isNotEmpty && yearLabel != '0';
+    final showSummary = showSummaryOnHover &&
+        hovered &&
+        (post.summary.isNotEmpty || hasYear);
 
     return SizedBox(
       width: width,
@@ -246,7 +249,7 @@ class _Poster extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (post.summary.isNotEmpty)
+                    if (post.summary.isNotEmpty || hasYear)
                       Positioned.fill(
                         child: IgnorePointer(
                           child: TweenAnimationBuilder<double>(
@@ -274,19 +277,41 @@ class _Poster extends StatelessWidget {
                                   vertical: 12,
                                 ),
                                 child: Center(
-                                  child: Text(
-                                    post.summary,
-                                    maxLines: 6,
-                                    overflow: TextOverflow.ellipsis,
-                                    textAlign: TextAlign.justify,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w400,
-                                      height: 1.55,
-                                      color: Colors.white.withValues(
-                                        alpha: 0.92,
-                                      ),
-                                    ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (post.summary.isNotEmpty)
+                                        Text(
+                                          post.summary,
+                                          maxLines: 6,
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.justify,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w400,
+                                            height: 1.55,
+                                            color: Colors.white.withValues(
+                                              alpha: 0.92,
+                                            ),
+                                          ),
+                                        ),
+                                      if (hasYear) ...[
+                                        if (post.summary.isNotEmpty)
+                                          const SizedBox(height: 8),
+                                        Text(
+                                          yearLabel,
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            height: 1.4,
+                                            color: Colors.white.withValues(
+                                              alpha: 0.7,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
                                   ),
                                 ),
                               ),

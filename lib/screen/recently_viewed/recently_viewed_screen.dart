@@ -232,7 +232,7 @@ class _RecentlyViewedHeader extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  'حذف تمامی مشاهده های اخیر',
+                  'حذف تمامی مشاهده‌های اخیر',
                   style: TextStyle(
                     fontFamily: 'vazir',
                     fontSize: 16,

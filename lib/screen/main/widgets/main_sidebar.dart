@@ -28,22 +28,22 @@ class _MainSidebarState extends State<MainSidebar> {
       route: Routes.search,
     ),
     _SidebarItem(
-      title: 'علاقه مندی ها',
+      title: 'علاقه‌مندی‌ها',
       iconAsset: 'assets/img/sidebar/ic_heart.svg',
       route: Routes.watchlist,
     ),
     _SidebarItem(
-      title: 'مشاهده های اخیر',
+      title: 'مشاهده‌های اخیر',
       iconAsset: 'assets/img/sidebar/ic_eye.svg',
       route: Routes.recentlyViewed,
     ),
     _SidebarItem(
-      title: 'قفسه بامابین',
+      title: 'قفسه‌ی بامابین',
       iconAsset: 'assets/img/sidebar/ic_server.svg',
       route: Routes.watchStatusPosts,
     ),
     _SidebarItem(
-      title: 'لیست های من',
+      title: 'لیست‌های من',
       iconAsset: 'assets/img/sidebar/ic_bookmark.svg',
       route: Routes.userLists,
     ),
@@ -58,7 +58,7 @@ class _MainSidebarState extends State<MainSidebar> {
       route: Routes.top250Series,
     ),
     _SidebarItem(
-      title: 'دانلود ها',
+      title: 'دانلود‌ها',
       iconAsset: 'assets/img/sidebar/ic_download.svg',
       route: Routes.downloadManager,
     ),

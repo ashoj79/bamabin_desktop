@@ -217,7 +217,7 @@ class _WatchlistHeader extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  'حذف تمامی علاقه مندی ها',
+                  'حذف تمامی علاقه‌مندی‌ها',
                   style: TextStyle(
                     fontFamily: 'vazir',
                     fontSize: 16,

@@ -163,6 +163,7 @@ class _CommentComposerState extends State<_CommentComposer> {
             color: blueColor,
             borderRadius: BorderRadius.circular(16),
             child: InkWell(
+              mouseCursor: SystemMouseCursors.click,
               onTap: widget.isSubmitting ? null : _submit,
               borderRadius: BorderRadius.circular(16),
               child: Container(
@@ -348,6 +349,7 @@ class _CommentBodyState extends State<_CommentBody> {
       return Material(
           color: Colors.transparent,
           child: InkWell(
+            mouseCursor: SystemMouseCursors.click,
             onTap: () => setState(() => _spoilerRevealed = true),
             borderRadius: BorderRadius.circular(24),
             child: Container(
