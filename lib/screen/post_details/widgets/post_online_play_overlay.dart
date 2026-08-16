@@ -192,8 +192,8 @@ class _PostOnlinePlayOverlayState extends State<PostOnlinePlayOverlay> {
         : 624.0;
 
     return Material(
-      type: MaterialType.transparency,
-      child: Align(
+        type: MaterialType.transparency,
+        child: Align(
         alignment: Alignment.bottomCenter,
         child: Directionality(
           textDirection: TextDirection.rtl,
@@ -271,7 +271,7 @@ class _PostOnlinePlayOverlayState extends State<PostOnlinePlayOverlay> {
           ),
         ),
       ),
-    );
+      );
   }
 
   Widget _buildMovieBody() {
@@ -456,7 +456,10 @@ class _SeasonEpisodeSection extends StatelessWidget {
 }
 
 class _EpisodePlayButton extends StatelessWidget {
-  const _EpisodePlayButton({required this.label, required this.onTap});
+  const _EpisodePlayButton({
+    required this.label,
+    required this.onTap,
+  });
 
   static const labelStyle = TextStyle(
     fontSize: 20,

@@ -18,6 +18,7 @@ class DownloadTask {
     this.status = DownloadTaskStatus.queued,
     this.receivedBytes = 0,
     this.totalBytes = 0,
+    this.speedBytesPerSec = 0,
     required this.createdAt,
   });
 
@@ -31,6 +32,9 @@ class DownloadTask {
   final DownloadTaskStatus status;
   final int receivedBytes;
   final int totalBytes;
+
+  /// Live transfer rate; not persisted across restarts.
+  final double speedBytesPerSec;
   final DateTime createdAt;
 
   double get progress {
@@ -43,6 +47,15 @@ class DownloadTask {
   bool get isActiveLike =>
       status == DownloadTaskStatus.active || status == DownloadTaskStatus.queued;
 
+  /// Estimated time left based on current speed; null when unknown.
+  Duration? get estimatedTimeRemaining {
+    if (status != DownloadTaskStatus.active) return null;
+    if (speedBytesPerSec <= 0 || totalBytes <= 0) return null;
+    final remaining = totalBytes - receivedBytes;
+    if (remaining <= 0) return Duration.zero;
+    return Duration(seconds: (remaining / speedBytesPerSec).ceil());
+  }
+
   DownloadTask copyWith({
     String? id,
     String? url,
@@ -54,6 +67,7 @@ class DownloadTask {
     DownloadTaskStatus? status,
     int? receivedBytes,
     int? totalBytes,
+    double? speedBytesPerSec,
     DateTime? createdAt,
   }) {
     return DownloadTask(
@@ -67,6 +81,7 @@ class DownloadTask {
       status: status ?? this.status,
       receivedBytes: receivedBytes ?? this.receivedBytes,
       totalBytes: totalBytes ?? this.totalBytes,
+      speedBytesPerSec: speedBytesPerSec ?? this.speedBytesPerSec,
       createdAt: createdAt ?? this.createdAt,
     );
   }

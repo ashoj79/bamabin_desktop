@@ -84,7 +84,7 @@ class PostDetailsCommentsSection extends StatelessWidget {
   }
 }
 
-class _CommentComposer extends StatelessWidget {
+class _CommentComposer extends StatefulWidget {
   const _CommentComposer({
     required this.controller,
     required this.isSubmitting,
@@ -94,6 +94,19 @@ class _CommentComposer extends StatelessWidget {
   final TextEditingController controller;
   final bool isSubmitting;
   final ValueChanged<String> onSubmit;
+
+  @override
+  State<_CommentComposer> createState() => _CommentComposerState();
+}
+
+class _CommentComposerState extends State<_CommentComposer> {
+  void _submit() {
+    if (widget.isSubmitting) return;
+    final text = widget.controller.text.trim();
+    if (text.isEmpty) return;
+    widget.onSubmit(text);
+    widget.controller.clear();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,8 +120,9 @@ class _CommentComposer extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: TextField(
-            controller: controller,
+            controller: widget.controller,
             maxLines: 1,
+            onSubmitted: (_) => _submit(),
             style: TextStyle(
               fontSize: 16,
               color: Colors.white.withValues(alpha: 0.85),
@@ -139,55 +153,46 @@ class _CommentComposer extends StatelessWidget {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(
-                  color: blueColor.withValues(alpha: 0.5),
-                ),
+                borderSide: BorderSide(color: desktopMutedColor, width: 2),
               ),
             ),
           ),
         ),
         const SizedBox(width: 12),
         Material(
-          color: blueColor,
-          borderRadius: BorderRadius.circular(16),
-          child: InkWell(
-            onTap: isSubmitting
-                ? null
-                : () {
-                    final text = controller.text.trim();
-                    if (text.isEmpty) return;
-                    onSubmit(text);
-                    controller.clear();
-                  },
+            color: blueColor,
             borderRadius: BorderRadius.circular(16),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.09),
+            child: InkWell(
+              onTap: widget.isSubmitting ? null : _submit,
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.09),
+                  ),
                 ),
+                child: widget.isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'ارسال دیدگاه',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
-              child: isSubmitting
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text(
-                      'ارسال دیدگاه',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -341,11 +346,11 @@ class _CommentBodyState extends State<_CommentBody> {
   Widget build(BuildContext context) {
     if (widget.hasSpoil && !_spoilerRevealed) {
       return Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => setState(() => _spoilerRevealed = true),
-          borderRadius: BorderRadius.circular(24),
-          child: Container(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => setState(() => _spoilerRevealed = true),
+            borderRadius: BorderRadius.circular(24),
+            child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 26),
             decoration: BoxDecoration(
@@ -388,7 +393,7 @@ class _CommentBodyState extends State<_CommentBody> {
             ),
           ),
         ),
-      );
+        );
     }
 
     return Text(

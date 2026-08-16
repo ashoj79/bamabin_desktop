@@ -10,36 +10,36 @@ class ViewAllButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextButton(
-      onPressed: onPressed,
-      style: TextButton.styleFrom(
-        foregroundColor: desktopInkColor,
-        padding: EdgeInsets.zero,
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        textDirection: TextDirection.ltr,
-        children: [
-          SvgPicture.asset(
-            'assets/img/arrow_left.svg',
-            width: 20,
-            height: 20,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            'مشاهده همه',
-            style: TextStyle(
-              fontFamily: 'dana',
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
-              height: 22 / 16,
-              letterSpacing: -0.18,
-              color: desktopInkColor,
+        onPressed: onPressed,
+        style: TextButton.styleFrom(
+          foregroundColor: desktopInkColor,
+          padding: EdgeInsets.zero,
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          textDirection: TextDirection.ltr,
+          children: [
+            SvgPicture.asset(
+              'assets/img/arrow_left.svg',
+              width: 20,
+              height: 20,
             ),
-          ),
-        ],
-      ),
-    );
+            const SizedBox(width: 8),
+            Text(
+              'مشاهده همه',
+              style: TextStyle(
+                fontFamily: 'dana',
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                height: 22 / 16,
+                letterSpacing: -0.18,
+                color: desktopInkColor,
+              ),
+            ),
+          ],
+        ),
+      );
   }
 }

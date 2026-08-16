@@ -28,4 +28,18 @@ ThemeData themeData = ThemeData(
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   ),
+
+  tooltipTheme: TooltipThemeData(
+    waitDuration: const Duration(milliseconds: 400),
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    textStyle: const TextStyle(
+      fontFamily: 'dana',
+      fontSize: 12,
+      color: Colors.white,
+    ),
+    decoration: BoxDecoration(
+      color: const Color(0xFF2B2B2B),
+      borderRadius: BorderRadius.circular(4),
+    ),
+  ),
 );

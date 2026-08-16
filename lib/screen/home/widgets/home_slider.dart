@@ -10,7 +10,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 class HomeSlider extends StatefulWidget {
-  const HomeSlider({super.key, required this.posts});
+  const HomeSlider({
+    super.key,
+    required this.posts,
+  });
 
   final List<SliderPost> posts;
 
@@ -27,17 +30,17 @@ class _HomeSliderState extends State<HomeSlider> {
     if (widget.posts.isEmpty) return const SizedBox.shrink();
 
     return SizedBox(
-      height: 590,
-      width: double.infinity,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          CarouselSlider.builder(
-            carouselController: _carouselController,
-            itemCount: widget.posts.length,
-            itemBuilder: (context, index, realIndex) {
-              return _HomeSliderItem(sliderPost: widget.posts[index]);
-            },
+        height: 590,
+        width: double.infinity,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            CarouselSlider.builder(
+              carouselController: _carouselController,
+              itemCount: widget.posts.length,
+              itemBuilder: (context, index, realIndex) {
+                return _HomeSliderItem(sliderPost: widget.posts[index]);
+              },
             options: CarouselOptions(
               height: 590,
               viewportFraction: 1,
@@ -106,7 +109,7 @@ class _HomeSliderState extends State<HomeSlider> {
           ],
         ],
       ),
-    );
+      );
   }
 }
 

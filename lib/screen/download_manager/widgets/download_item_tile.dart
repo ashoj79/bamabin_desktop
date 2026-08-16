@@ -185,6 +185,14 @@ class DownloadItemTile extends StatelessWidget {
                         ),
                       ],
                     ),
+                    if (_speedLabel(task) != null ||
+                        _etaLabel(task) != null) ...[
+                      const SizedBox(height: 4),
+                      _SpeedEtaRow(
+                        speed: _speedLabel(task),
+                        eta: _etaLabel(task),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -212,7 +220,48 @@ class DownloadItemTile extends StatelessWidget {
     final total = task.totalBytes > 0
         ? _formatBytes(task.totalBytes)
         : (task.sizeLabel.isNotEmpty ? task.sizeLabel : '؟');
-    return '$pct% ($received از $total)';
+    return '${_ltr('$pct%')} (${_ltr(received)} از ${_ltr(total)})';
+  }
+
+  static String? _speedLabel(DownloadTask task) {
+    if (task.status != DownloadTaskStatus.active) return null;
+    if (task.speedBytesPerSec <= 0) return null;
+    return '${_formatSpeed(task.speedBytesPerSec)}/s';
+  }
+
+  static String? _etaLabel(DownloadTask task) {
+    if (task.status != DownloadTaskStatus.active) return null;
+    final eta = task.estimatedTimeRemaining;
+    if (eta == null) return null;
+    return '${_formatEta(eta)} مانده';
+  }
+
+  /// Keeps `1/5MB` from flipping to `5/1MB` inside RTL text.
+  static String _ltr(String value) => '\u2066$value\u2069';
+
+  static String _formatSpeed(double bytesPerSec) {
+    if (bytesPerSec <= 0) return '0KB';
+    final mb = bytesPerSec / (1024 * 1024);
+    if (mb >= 1) return '${_faDecimal(mb)}MB';
+    final kb = bytesPerSec / 1024;
+    return '${_faDecimal(kb)}KB';
+  }
+
+  static String _formatEta(Duration eta) {
+    final totalSec = eta.inSeconds;
+    if (totalSec <= 0) return 'چند ثانیه';
+    if (totalSec < 60) return '${_ltr('$totalSec')} ثانیه';
+    final hours = eta.inHours;
+    final minutes = eta.inMinutes.remainder(60);
+    final seconds = eta.inSeconds.remainder(60);
+    if (hours > 0) {
+      if (minutes > 0) {
+        return '${_ltr('$hours')} ساعت و ${_ltr('$minutes')} دقیقه';
+      }
+      return '${_ltr('$hours')} ساعت';
+    }
+    final shown = seconds >= 30 && minutes < 59 ? minutes + 1 : minutes;
+    return '${_ltr('$shown')} دقیقه';
   }
 
   static String _formatBytes(int bytes) {
@@ -230,10 +279,44 @@ class DownloadItemTile extends StatelessWidget {
 
   /// Figma uses `/` as decimal separator: `1/1MB`, `22/6MB`.
   static String _faDecimal(double value) {
-    final fixed = value < 10
-        ? value.toStringAsFixed(1)
-        : value.toStringAsFixed(1);
+    final fixed = value.toStringAsFixed(1);
     return fixed.replaceAll('.', '/');
+  }
+}
+
+class _SpeedEtaRow extends StatelessWidget {
+  const _SpeedEtaRow({this.speed, this.eta});
+
+  final String? speed;
+  final String? eta;
+
+  static const _style = TextStyle(
+    fontFamily: 'vazir',
+    fontSize: 12,
+    height: 16 / 12,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = Colors.white.withValues(alpha: 0.55);
+    return Row(
+      children: [
+        if (speed != null)
+          Text(
+            speed!,
+            textDirection: TextDirection.ltr,
+            style: _style.copyWith(color: muted),
+          ),
+        if (speed != null && eta != null)
+          Text(' · ', style: _style.copyWith(color: muted)),
+        if (eta != null)
+          Text(
+            eta!,
+            textDirection: TextDirection.rtl,
+            style: _style.copyWith(color: muted),
+          ),
+      ],
+    );
   }
 }
 

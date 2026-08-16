@@ -64,24 +64,24 @@ class _PostWidgetState extends State<PostWidget> {
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      cursor: SystemMouseCursors.click,
-      child: SizedBox(
-        width: widget.width,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _Poster(
-              post: post,
-              width: widget.width,
-              height: widget.imageHeight,
-              hovered: _hovered,
-              showSummaryOnHover: widget.showSummaryOnHover,
-              onTap: _handleTap,
-              onDeleteTap: widget.onDeleteTap,
-            ),
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        cursor: SystemMouseCursors.click,
+        child: SizedBox(
+          width: widget.width,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _Poster(
+                post: post,
+                width: widget.width,
+                height: widget.imageHeight,
+                hovered: _hovered,
+                showSummaryOnHover: widget.showSummaryOnHover,
+                onTap: _handleTap,
+                onDeleteTap: widget.onDeleteTap,
+              ),
             const SizedBox(height: 8),
             GestureDetector(
               onTap: _handleTap,
@@ -122,7 +122,7 @@ class _PostWidgetState extends State<PostWidget> {
           ],
         ),
       ),
-    );
+      );
   }
 }
 

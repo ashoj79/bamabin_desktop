@@ -98,7 +98,9 @@ class _MainSidebarState extends State<MainSidebar> {
     Routes.top250Series,
   };
 
-  bool _expanded = false;
+  bool _hovered = false;
+
+  bool get _expanded => _hovered;
 
   bool _isSelected(String location, String route) {
     if (route == Routes.main) {
@@ -121,8 +123,8 @@ class _MainSidebarState extends State<MainSidebar> {
     final expanded = _expanded;
 
     return MouseRegion(
-      onEnter: (_) => setState(() => _expanded = true),
-      onExit: (_) => setState(() => _expanded = false),
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
       child: AnimatedContainer(
         duration: _animDuration,
         curve: Curves.easeOutCubic,
@@ -138,64 +140,64 @@ class _MainSidebarState extends State<MainSidebar> {
         ),
         clipBehavior: Clip.hardEdge,
         child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: expanded ? 32 : 8,
-            vertical: 16,
-          ),
-          child: Column(
-            children: [
-              _SidebarLogo(expanded: expanded),
-              const SizedBox(height: 10),
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      physics: const ClampingScrollPhysics(),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight,
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            for (var i = 0; i < _navItems.length; i++) ...[
-                              if (i > 0) const SizedBox(height: 16),
-                              _SidebarNavItem(
-                                item: _navItems[i],
-                                expanded: expanded,
-                                selected: _isSelected(
-                                  location,
-                                  _navItems[i].route,
+            padding: EdgeInsets.symmetric(
+              horizontal: expanded ? 32 : 8,
+              vertical: 16,
+            ),
+            child: Column(
+              children: [
+                _SidebarLogo(expanded: expanded),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        physics: const ClampingScrollPhysics(),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              for (var i = 0; i < _navItems.length; i++) ...[
+                                if (i > 0) const SizedBox(height: 16),
+                                _SidebarNavItem(
+                                  item: _navItems[i],
+                                  expanded: expanded,
+                                  selected: _isSelected(
+                                    location,
+                                    _navItems[i].route,
+                                  ),
+                                  onTap: () =>
+                                      _onItemTap(context, _navItems[i].route),
                                 ),
-                                onTap: () =>
-                                    _onItemTap(context, _navItems[i].route),
-                              ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
-              Column(
-                children: [
-                  for (var i = 0; i < _bottomItems.length; i++) ...[
-                    if (i > 0) const SizedBox(height: 16),
-                    _SidebarNavItem(
-                      item: _bottomItems[i],
-                      expanded: expanded,
-                      selected: _isSelected(location, _bottomItems[i].route),
-                      onTap: () => _onItemTap(context, _bottomItems[i].route),
-                    ),
+                Column(
+                  children: [
+                    for (var i = 0; i < _bottomItems.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 16),
+                      _SidebarNavItem(
+                        item: _bottomItems[i],
+                        expanded: expanded,
+                        selected: _isSelected(location, _bottomItems[i].route),
+                        onTap: () => _onItemTap(context, _bottomItems[i].route),
+                      ),
+                    ],
                   ],
-                ],
-              ),
-              const SizedBox(height: 16),
-            ],
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
         ),
-      ),
     );
   }
 }
@@ -258,46 +260,47 @@ class _SidebarNavItem extends StatelessWidget {
     final color = selected ? blueColor : const Color(0xB3FFFFFF);
 
     return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        hoverColor: Colors.white.withValues(alpha: 0.06),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: SizedBox(
-            width: double.infinity,
-            height: 30,
-            child: expanded
-                ? Row(
-                    children: [
-                      _SidebarIcon(asset: item.iconAsset, color: color),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          item.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            color: color,
-                            fontSize: 18,
-                            fontWeight:
-                                selected ? FontWeight.w700 : FontWeight.w400,
-                            height: 1,
-                            letterSpacing: -0.18,
+        color: Colors.transparent,
+        child: InkWell(
+          canRequestFocus: false,
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          hoverColor: Colors.white.withValues(alpha: 0.06),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: SizedBox(
+              width: double.infinity,
+              height: 30,
+              child: expanded
+                  ? Row(
+                      children: [
+                        _SidebarIcon(asset: item.iconAsset, color: color),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            item.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.right,
+                            style: TextStyle(
+                              color: color,
+                              fontSize: 18,
+                              fontWeight:
+                                  selected ? FontWeight.w700 : FontWeight.w400,
+                              height: 1,
+                              letterSpacing: -0.18,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  )
-                : Center(
-                    child: _SidebarIcon(asset: item.iconAsset, color: color),
-                  ),
+                      ],
+                    )
+                  : Center(
+                      child: _SidebarIcon(asset: item.iconAsset, color: color),
+                    ),
+            ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
 

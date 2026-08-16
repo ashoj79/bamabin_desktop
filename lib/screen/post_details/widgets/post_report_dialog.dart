@@ -260,7 +260,7 @@ class _CloseButton extends StatelessWidget {
           ),
         ),
       ),
-    );
+      );
   }
 }
 

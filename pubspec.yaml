@@ -68,6 +68,7 @@ dependencies:
   win32_registry: ^2.1.0
   path_provider: ^2.1.5
   path: ^1.9.1
+  window_manager: ^0.5.2
 
 dev_dependencies:
   flutter_test:

@@ -3,7 +3,10 @@ import 'package:bamabin_desktop/data/remote/model/user/ticket.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/post.dart';
 import 'package:bamabin_desktop/screen/auth/auth_screen.dart';
 import 'package:bamabin_desktop/screen/auth/bloc/auth_bloc.dart';
+import 'package:bamabin_desktop/screen/categories/bloc/taxonomy_posts_bloc.dart';
 import 'package:bamabin_desktop/screen/categories/categories_screen.dart';
+import 'package:bamabin_desktop/screen/categories/taxonomy_posts_args.dart';
+import 'package:bamabin_desktop/screen/categories/taxonomy_posts_screen.dart';
 import 'package:bamabin_desktop/screen/download_manager/bloc/download_manager_bloc.dart';
 import 'package:bamabin_desktop/screen/download_manager/download_manager_screen.dart';
 import 'package:bamabin_desktop/screen/home/home_screen.dart';
@@ -73,6 +76,16 @@ final GoRouter router = GoRouter(
         GoRoute(
           path: Routes.genresList,
           builder: (context, state) => const CategoriesScreen(),
+        ),
+        GoRoute(
+          path: Routes.taxonomyPosts,
+          builder: (context, state) {
+            final args = TaxonomyPostsArgs.fromExtra(state.extra);
+            return BlocProvider(
+              create: (_) => locator<TaxonomyPostsBloc>(param1: args),
+              child: TaxonomyPostsScreen(title: args.title),
+            );
+          },
         ),
         GoRoute(
           path: Routes.subscription,
@@ -209,13 +222,6 @@ final GoRouter router = GoRouter(
           create: (_) => locator<PlayerBloc>(),
           child: PlayerScreen(args: extra),
         );
-      },
-    ),
-    GoRoute(
-      path: Routes.taxonomyPosts,
-      builder: (context, state) {
-        final title = (state.extra as Map?)?['title'] as String? ?? 'آرشیو';
-        return MainPlaceholderPage(title: title);
       },
     ),
     GoRoute(

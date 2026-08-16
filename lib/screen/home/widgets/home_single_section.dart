@@ -10,7 +10,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 class HomeSingleSection extends StatelessWidget {
-  const HomeSingleSection({super.key, required this.section});
+  const HomeSingleSection({
+    super.key,
+    required this.section,
+  });
 
   final SingleSection section;
 
@@ -179,7 +182,9 @@ class HomeSingleSection extends StatelessWidget {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      _PlayOnlineButton(onTap: () => _openDetails(context)),
+                      _PlayOnlineButton(
+                        onTap: () => _openDetails(context),
+                      ),
                       const SizedBox(width: 8),
                       _MoreInfoButton(onTap: () => _openDetails(context)),
                     ],
@@ -202,40 +207,41 @@ class _PlayOnlineButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: blueColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.09)),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsetsDirectional.only(
-            start: 16,
-            end: 24,
-            top: 12,
-            bottom: 12,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const _PlayCircleIcon(size: 24),
-              const SizedBox(width: 8),
-              const Text(
-                'پخش آنلاین',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.18,
-                  color: Colors.white,
+        color: blueColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.09)),
+        ),
+        child: InkWell(
+          canRequestFocus: false,
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.only(
+              start: 16,
+              end: 24,
+              top: 12,
+              bottom: 12,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const _PlayCircleIcon(size: 24),
+                const SizedBox(width: 8),
+                const Text(
+                  'پخش آنلاین',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.18,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
 
@@ -247,28 +253,29 @@ class _MoreInfoButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.09),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.48)),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          child: Text(
-            'اطلاعات بیشتر',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.18,
-              color: Colors.white.withValues(alpha: 0.75),
+        color: Colors.white.withValues(alpha: 0.09),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.48)),
+        ),
+        child: InkWell(
+          canRequestFocus: false,
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            child: Text(
+              'اطلاعات بیشتر',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.18,
+                color: Colors.white.withValues(alpha: 0.75),
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
 

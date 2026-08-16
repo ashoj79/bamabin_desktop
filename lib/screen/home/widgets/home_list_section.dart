@@ -3,12 +3,17 @@ import 'package:bamabin_desktop/core/routes.dart';
 import 'package:bamabin_desktop/core/widgets/post_widget.dart';
 import 'package:bamabin_desktop/core/widgets/view_all_button.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/home_sections.dart';
+import 'package:bamabin_desktop/screen/categories/taxonomy_posts_args.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
 
 class HomeListSection extends StatelessWidget {
-  const HomeListSection({super.key, required this.section});
+  const HomeListSection({
+    super.key,
+    required this.section,
+  });
 
   final ListSection section;
 
@@ -16,11 +21,11 @@ class HomeListSection extends StatelessWidget {
     if (section.taxonomy != null && section.taxonomyId != null) {
       context.push(
         Routes.taxonomyPosts,
-        extra: {
-          'taxonomy': section.taxonomy,
-          'title': section.name,
-          'id': int.tryParse(section.taxonomyId!) ?? 0,
-        },
+        extra: TaxonomyPostsArgs(
+          taxonomy: section.taxonomy!,
+          id: int.tryParse(section.taxonomyId!) ?? 0,
+          title: section.name,
+        ),
       );
       return;
     }
@@ -80,11 +85,14 @@ class HomeListSection extends StatelessWidget {
               ),
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
+                scrollCacheExtent: const ScrollCacheExtent.pixels(2000),
                 padding: const EdgeInsets.fromLTRB(28, 0, 28, 14),
                 itemCount: section.posts.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 10),
                 itemBuilder: (context, index) {
-                  return PostWidget(post: section.posts[index]);
+                  return PostWidget(
+                    post: section.posts[index],
+                  );
                 },
               ),
             ),

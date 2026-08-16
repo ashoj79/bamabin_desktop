@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui';
 
 import 'package:bamabin_desktop/config/color.dart';
+import 'package:bamabin_desktop/core/window_chrome.dart';
 import 'package:bamabin_desktop/core/widgets/stroke_text.dart';
 import 'package:bamabin_desktop/data/local/database/model/watch_data.dart';
 import 'package:bamabin_desktop/data/local/database/model/watched_episode.dart';
@@ -369,12 +371,14 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   Future<void> _exitFullScreenIfNeeded() async {
     if (!_isWindowFullScreen) return;
+    windowNativeFullscreen.value = false;
     await defaultExitNativeFullscreen();
     _isWindowFullScreen = false;
   }
 
   Future<void> _toggleFullScreen() async {
     final next = !_isWindowFullScreen;
+    windowNativeFullscreen.value = next;
     if (next) {
       await defaultEnterNativeFullscreen();
     } else {
@@ -1137,9 +1141,14 @@ class _PlayerScreenState extends State<PlayerScreen> {
             // Player chrome matches Figma LTR layout (scrubber / transport).
             textDirection: TextDirection.ltr,
             child: MouseRegion(
+              opaque: false,
               onHover: (_) => _onPointerActivity(),
               onEnter: (_) => _onPointerActivity(),
-              child: Stack(
+              child: Listener(
+                behavior: HitTestBehavior.translucent,
+                onPointerHover: (_) => _onPointerActivity(),
+                onPointerMove: (_) => _onPointerActivity(),
+                child: Stack(
               fit: StackFit.expand,
               children: [
                 Video(
@@ -1168,7 +1177,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
                     if (_isLocked) return;
-                    setShowController(!_showController);
+                    if (_showSettings) {
+                      setShowSettings(false);
+                      return;
+                    }
+                    unawaited(_player.playOrPause());
+                    _onPointerActivity();
                   },
                 ),
                 if (!_isLocked)
@@ -1192,7 +1206,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                           ),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.all(32),
+                          padding: const EdgeInsets.all(24),
                           child: Column(
                             children: [
                               GestureDetector(
@@ -1210,7 +1224,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                               ),
                               if (_aspectRatioName.isNotEmpty ||
                                   _newTime.isNotEmpty) ...[
-                                const SizedBox(height: 12),
+                                const SizedBox(height: 10),
                                 Text(
                                   _aspectRatioName.isNotEmpty
                                       ? _aspectRatioName
@@ -1221,7 +1235,15 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                   ),
                                 ),
                               ],
-                              const Spacer(),
+                              Expanded(
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    unawaited(_player.playOrPause());
+                                    _onPointerActivity();
+                                  },
+                                ),
+                              ),
                               GestureDetector(
                                 behavior: HitTestBehavior.opaque,
                                 onTap: () {},
@@ -1319,10 +1341,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 ),
                 if (_isLocked)
                   Positioned(
-                    top: 32,
-                    left: 32,
+                    top: 24,
+                    left: 24,
                     child: _PlayerIconButton(
                       asset: 'assets/img/player/player_lock.svg',
+                      tooltip: 'باز کردن قفل',
                       onTap: _changeLockState,
                     ),
                   ),
@@ -1338,6 +1361,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                     ),
                   ),
               ],
+            ),
             ),
             ),
           ),
@@ -1361,11 +1385,12 @@ class _PlayerHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Row(
         children: [
           _PlayerIconButton(
             asset: 'assets/img/player/player_back.svg',
+            tooltip: 'بازگشت',
             onTap: onBack,
           ),
           const Spacer(),
@@ -1379,23 +1404,23 @@ class _PlayerHeader extends StatelessWidget {
                   title,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: 18,
                     fontWeight: FontWeight.w500,
                     color: Colors.white,
-                    height: 20 / 24,
+                    height: 20 / 18,
                     letterSpacing: -0.16,
                   ),
                 ),
                 if (subtitle.isNotEmpty) ...[
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 8),
                   Text(
                     subtitle,
                     textAlign: TextAlign.right,
                     style: const TextStyle(
-                      fontSize: 20,
+                      fontSize: 15,
                       fontWeight: FontWeight.w400,
                       color: PlayerScreen._mutedText,
-                      height: 20 / 20,
+                      height: 18 / 15,
                       letterSpacing: -0.16,
                     ),
                   ),
@@ -1480,22 +1505,26 @@ class _PlayerBottomBar extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(
             children: [
               _TimeLabel(_formatPlayerDuration(position)),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
-                child: _ProgressBar(progress: progress, onSeek: onSeek),
+                child: _ProgressBar(
+                  progress: progress,
+                  duration: duration,
+                  onSeek: onSeek,
+                ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               _TimeLabel(_formatPlayerDuration(duration)),
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
           child: Row(
             children: [
               Expanded(
@@ -1503,28 +1532,33 @@ class _PlayerBottomBar extends StatelessWidget {
                   children: [
                     _PlayerIconButton(
                       asset: 'assets/img/player/player_lock.svg',
+                      tooltip: 'قفل',
                       onTap: onLock,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     _PlayerIconButton(
                       asset: 'assets/img/player/player_aspect_ratio.svg',
+                      tooltip: 'حالت تصویر',
                       onTap: onAspectRatio,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     _PlayerIconButton(
                       asset: isFullScreen
                           ? 'assets/img/player/player_quit_full_screen.svg'
                           : 'assets/img/player/player_fullscreen.svg',
+                      tooltip:
+                          isFullScreen ? 'خروج از تمام‌صفحه' : 'تمام‌صفحه',
                       onTap: onFullscreen,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     Row(
                       children: [
                         _PlayerIconButton(
                           asset: 'assets/img/player/player_volume.svg',
+                          tooltip: 'صدا',
                           onTap: () => onVolumeChanged(volume <= 0 ? 1 : 0),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 4),
                         _VolumeSlider(
                           progress: volume / 100,
                           onChanged: onVolumeChanged,
@@ -1532,9 +1566,10 @@ class _PlayerBottomBar extends StatelessWidget {
                       ],
                     ),
                     if (isSeries) ...[
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       _PlayerIconButton(
                         asset: 'assets/img/player/player_skip_next.svg',
+                        tooltip: 'قسمت بعد',
                         onTap: onSkipNext,
                       ),
                     ],
@@ -1545,21 +1580,24 @@ class _PlayerBottomBar extends StatelessWidget {
                 children: [
                   _PlayerIconButton(
                     asset: 'assets/img/player/player_rewind_10.svg',
-                    iconSize: 31,
+                    iconSize: 25,
+                    tooltip: '۱۰ ثانیه عقب',
                     onTap: onReplay10,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   _PlayerIconButton(
                     asset: playing
                         ? 'assets/img/player/player_pause.svg'
                         : 'assets/img/player/player_play.svg',
+                    tooltip: playing ? 'توقف' : 'پخش',
                     onTap: onPlayPause,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   _PlayerIconButton(
                     asset: 'assets/img/player/player_forward_10.svg',
-                    iconWidth: 32,
-                    iconHeight: 31,
+                    iconWidth: 26,
+                    iconHeight: 25,
+                    tooltip: '۱۰ ثانیه جلو',
                     onTap: onForward10,
                   ),
                 ],
@@ -1571,40 +1609,45 @@ class _PlayerBottomBar extends StatelessWidget {
                     if (isSeries) ...[
                       _PlayerIconButton(
                         asset: 'assets/img/player/player_layers.svg',
+                        tooltip: 'قسمت ها',
                         onTap: onShowSeasons,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                     ],
                     _PlayerIconButton(
                       key: speedButtonKey,
                       asset: 'assets/img/player/player_speed.svg',
+                      tooltip: 'سرعت',
                       onTap: onShowSpeed,
                     ),
                     if (isLoaded) ...[
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       _PlayerIconButton(
                         key: subtitleButtonKey,
                         asset: 'assets/img/player/player_subtitles.svg',
+                        tooltip: 'زیرنویس',
                         onTap: onShowSubtitles,
                       ),
                       if (audioTrackCount > 1) ...[
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 8),
                         _PlayerIconButton(
                           key: audioButtonKey,
                           asset: 'assets/img/player/player_mic.svg',
+                          tooltip: 'دوبله',
                           onTap: onShowAudio,
                         ),
                       ],
                     ],
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     _QualityButton(
                       buttonKey: qualityButtonKey,
                       qualityLabel: qualityLabel,
                       onTap: onShowQuality,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     _PlayerIconButton(
                       asset: 'assets/img/player/player_settings.svg',
+                      tooltip: 'تنظیمات',
                       onTap: onShowSettings,
                     ),
                   ],
@@ -1633,37 +1676,38 @@ class _QualityButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       key: buttonKey,
-      width: 60,
-      height: 60,
+      width: _PlayerIconButton.size,
+      height: _PlayerIconButton.size,
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
           _PlayerIconButton(
             asset: 'assets/img/player/player_quality.svg',
+            tooltip: 'کیفیت',
             onTap: onTap,
           ),
           if (qualityLabel.isNotEmpty)
             Positioned(
-              top: -19,
+              top: -14,
               child: IgnorePointer(
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                    horizontal: 6,
+                    vertical: 3,
                   ),
                   decoration: BoxDecoration(
                     color: PlayerScreen._badgeBg,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     qualityLabel,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 11,
                       fontWeight: FontWeight.w700,
                       color: PlayerScreen._badgeText,
-                      height: 16 / 14,
+                      height: 14 / 11,
                       letterSpacing: 0.1,
                     ),
                   ),
@@ -1676,18 +1720,121 @@ class _QualityButton extends StatelessWidget {
   }
 }
 
+class _PlayerTooltip extends StatefulWidget {
+  const _PlayerTooltip({required this.message, required this.child});
+
+  final String message;
+  final Widget child;
+
+  @override
+  State<_PlayerTooltip> createState() => _PlayerTooltipState();
+}
+
+class _PlayerTooltipState extends State<_PlayerTooltip> {
+  bool _visible = false;
+
+  void _setVisible(bool value) {
+    if (_visible == value) return;
+    setState(() => _visible = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => _setVisible(true),
+      onExit: (_) => _setVisible(false),
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          widget.child,
+          if (_visible)
+            Positioned(
+              bottom: 56,
+              child: IgnorePointer(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: blueColor.withValues(alpha: 0.24),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            widget.message,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontFamily: 'dana',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              height: 14 / 12,
+                              letterSpacing: 0.1,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    CustomPaint(
+                      size: const Size(12, 5.5),
+                      painter: _TooltipArrowPainter(
+                        color: blueColor.withValues(alpha: 0.24),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TooltipArrowPainter extends CustomPainter {
+  _TooltipArrowPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..lineTo(size.width, 0)
+      ..close();
+    canvas.drawPath(path, Paint()..color = color);
+  }
+
+  @override
+  bool shouldRepaint(covariant _TooltipArrowPainter oldDelegate) =>
+      oldDelegate.color != color;
+}
+
 class _PlayerIconButton extends StatelessWidget {
   const _PlayerIconButton({
     super.key,
     required this.asset,
     required this.onTap,
-    this.iconSize = 32,
+    this.tooltip,
+    this.iconSize = 26,
     this.iconWidth,
     this.iconHeight,
   });
 
+  static const double size = 48;
+
   final String asset;
   final VoidCallback onTap;
+  final String? tooltip;
   final double iconSize;
   final double? iconWidth;
   final double? iconHeight;
@@ -1696,7 +1843,7 @@ class _PlayerIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final w = iconWidth ?? iconSize;
     final h = iconHeight ?? iconSize;
-    return Material(
+    final button = Material(
       color: PlayerScreen._iconBtnBg,
       shape: const CircleBorder(
         side: BorderSide(color: PlayerScreen._iconBtnBorder),
@@ -1705,14 +1852,17 @@ class _PlayerIconButton extends StatelessWidget {
         onTap: onTap,
         customBorder: const CircleBorder(),
         child: SizedBox(
-          width: 60,
-          height: 60,
+          width: size,
+          height: size,
           child: Center(
             child: SvgPicture.asset(asset, width: w, height: h),
           ),
         ),
       ),
     );
+
+    if (tooltip == null || tooltip!.isEmpty) return button;
+    return _PlayerTooltip(message: tooltip!, child: button);
   }
 }
 
@@ -1727,70 +1877,199 @@ class _TimeLabel extends StatelessWidget {
       text,
       textAlign: TextAlign.center,
       style: const TextStyle(
-        fontSize: 20,
+        fontSize: 15,
         fontWeight: FontWeight.w400,
         color: Colors.white,
-        height: 16 / 20,
+        height: 16 / 15,
         letterSpacing: -0.12,
       ),
     );
   }
 }
 
-/// Progress bar matching Figma Frame 8654 (32px tall, 2px track, Ø21.33 thumb).
+/// Progress scrubber for desktop player controls.
 /// [onSeek] receives the seek ratio in the 0..1 range.
-class _ProgressBar extends StatelessWidget {
-  const _ProgressBar({required this.progress, required this.onSeek});
+class _ProgressBar extends StatefulWidget {
+  const _ProgressBar({
+    required this.progress,
+    required this.duration,
+    required this.onSeek,
+  });
 
   final double progress;
+  final Duration duration;
   final ValueChanged<double> onSeek;
+
+  @override
+  State<_ProgressBar> createState() => _ProgressBarState();
+}
+
+class _ProgressBarState extends State<_ProgressBar> {
+  static const double _thumb = 16;
+
+  bool _hovering = false;
+  double _hoverX = 0;
+  double _barWidth = 0;
+
+  double get _hoverRatio {
+    if (_barWidth <= 0) return 0;
+    return (_hoverX / _barWidth).clamp(0.0, 1.0);
+  }
+
+  String get _hoverTimeLabel {
+    final totalMs = widget.duration.inMilliseconds;
+    if (totalMs <= 0) return _formatPlayerDuration(Duration.zero);
+    final ms = (totalMs * _hoverRatio).round();
+    return _formatPlayerDuration(Duration(milliseconds: ms));
+  }
+
+  void _updateHover(Offset local, double width) {
+    setState(() {
+      _hovering = true;
+      _hoverX = local.dx.clamp(0.0, width);
+      _barWidth = width;
+    });
+  }
+
+  void _clearHover() {
+    if (!_hovering) return;
+    setState(() => _hovering = false);
+  }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 32,
+      height: 24,
       width: double.infinity,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          void handle(Offset local) {
-            final ratio = (local.dx / constraints.maxWidth).clamp(0.0, 1.0);
-            onSeek(ratio);
+          final width = constraints.maxWidth;
+
+          void handleSeek(Offset local) {
+            final ratio = (local.dx / width).clamp(0.0, 1.0);
+            widget.onSeek(ratio);
           }
 
-          final clamped = progress.clamp(0.0, 1.0);
-          final thumbCenter = constraints.maxWidth * clamped;
-          return GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTapDown: (d) => handle(d.localPosition),
-            onHorizontalDragUpdate: (d) => handle(d.localPosition),
-            child: Stack(
-              alignment: Alignment.centerLeft,
-              children: [
-                Positioned(
-                  left: thumbCenter,
-                  right: 12,
-                  child: Container(height: 2, color: PlayerScreen._track),
-                ),
-                Positioned(
-                  left: 12,
-                  width: (thumbCenter - 12).clamp(0.0, constraints.maxWidth),
-                  child: Container(height: 2, color: blueColor),
-                ),
-                Positioned(
-                  left: (thumbCenter - 10.667).clamp(
-                    0.0,
-                    constraints.maxWidth - 21.333,
-                  ),
-                  child: Container(
-                    width: 21.333,
-                    height: 21.333,
-                    decoration: BoxDecoration(
-                      color: blueColor,
-                      shape: BoxShape.circle,
+          final clamped = widget.progress.clamp(0.0, 1.0);
+          final thumbCenter = width * clamped;
+          final trackHeight = _hovering ? 5.0 : 2.0;
+
+          return MouseRegion(
+            onEnter: (e) => _updateHover(e.localPosition, width),
+            onHover: (e) => _updateHover(e.localPosition, width),
+            onExit: (_) => _clearHover(),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTapDown: (d) => handleSeek(d.localPosition),
+              onHorizontalDragUpdate: (d) {
+                _updateHover(d.localPosition, width);
+                handleSeek(d.localPosition);
+              },
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.centerLeft,
+                children: [
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 140),
+                      curve: Curves.easeOut,
+                      height: trackHeight,
+                      decoration: BoxDecoration(
+                        color: PlayerScreen._track,
+                        borderRadius: BorderRadius.circular(trackHeight),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  Positioned(
+                    left: 0,
+                    width: thumbCenter.clamp(0.0, width),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 140),
+                      curve: Curves.easeOut,
+                      height: trackHeight,
+                      decoration: BoxDecoration(
+                        color: blueColor,
+                        borderRadius: BorderRadius.circular(trackHeight),
+                      ),
+                    ),
+                  ),
+                  if (_hovering)
+                    Positioned(
+                      left: (_hoverX - 0.75).clamp(0.0, width - 1.5),
+                      top: 4,
+                      bottom: 4,
+                      child: Container(
+                        width: 1.5,
+                        color: Colors.white.withValues(alpha: 0.55),
+                      ),
+                    ),
+                  Positioned(
+                    left: (thumbCenter - _thumb / 2).clamp(0.0, width - _thumb),
+                    child: Container(
+                      width: _thumb,
+                      height: _thumb,
+                      decoration: BoxDecoration(
+                        color: blueColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  if (_hovering && widget.duration > Duration.zero)
+                    Positioned(
+                      left: _hoverX,
+                      bottom: 28,
+                      child: IgnorePointer(
+                        child: FractionalTranslation(
+                          translation: const Offset(-0.5, 0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(
+                                    sigmaX: 12,
+                                    sigmaY: 12,
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: blueColor.withValues(alpha: 0.24),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      _hoverTimeLabel,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontFamily: 'dana',
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                        height: 14 / 12,
+                                        letterSpacing: 0.1,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              CustomPaint(
+                                size: const Size(12, 5.5),
+                                painter: _TooltipArrowPainter(
+                                  color: blueColor.withValues(alpha: 0.24),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           );
         },
@@ -1799,7 +2078,7 @@ class _ProgressBar extends StatelessWidget {
   }
 }
 
-/// Volume slider matching Figma (166×32, Ø16 thumb).
+/// Volume slider for desktop player controls.
 /// [onChanged] receives the volume ratio in the 0..1 range.
 class _VolumeSlider extends StatelessWidget {
   const _VolumeSlider({required this.progress, required this.onChanged});
@@ -1807,14 +2086,17 @@ class _VolumeSlider extends StatelessWidget {
   final double progress;
   final ValueChanged<double> onChanged;
 
+  static const double _width = 120;
+  static const double _thumb = 12;
+  static const double _pad = 8;
+
   @override
   Widget build(BuildContext context) {
-    const width = 166.0;
     final clamped = progress.clamp(0.0, 1.0);
-    final thumbCenter = 12 + (width - 12 - 12) * clamped;
+    final thumbCenter = _pad + (_width - _pad * 2) * clamped;
 
     void handle(Offset local) {
-      final ratio = ((local.dx - 12) / (width - 24)).clamp(0.0, 1.0);
+      final ratio = ((local.dx - _pad) / (_width - _pad * 2)).clamp(0.0, 1.0);
       onChanged(ratio);
     }
 
@@ -1823,29 +2105,29 @@ class _VolumeSlider extends StatelessWidget {
       onTapDown: (d) => handle(d.localPosition),
       onHorizontalDragUpdate: (d) => handle(d.localPosition),
       child: SizedBox(
-        width: width,
-        height: 32,
+        width: _width,
+        height: 24,
         child: Stack(
           alignment: Alignment.centerLeft,
           children: [
             Positioned(
               left: thumbCenter,
-              right: 12,
+              right: _pad,
               child: Container(height: 1.5, color: PlayerScreen._track),
             ),
             Positioned(
-              left: 12,
-              width: (thumbCenter - 12).clamp(0.0, width),
+              left: _pad,
+              width: (thumbCenter - _pad).clamp(0.0, _width),
               child: Container(
                 height: 1.5,
                 color: PlayerScreen._volumeFill,
               ),
             ),
             Positioned(
-              left: thumbCenter - 8,
+              left: thumbCenter - _thumb / 2,
               child: Container(
-                width: 16,
-                height: 16,
+                width: _thumb,
+                height: _thumb,
                 decoration: const BoxDecoration(
                   color: PlayerScreen._volumeFill,
                   shape: BoxShape.circle,

@@ -26,18 +26,19 @@ class MainHeader extends StatelessWidget {
           Row(
             children: [
               InkWell(
-                onTap: () => context.go(Routes.main),
-                borderRadius: BorderRadius.circular(4),
-                child: Text(
-                  'بامابین',
-                  style: TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w800,
-                    color: desktopInkColor,
-                    letterSpacing: -0.5,
+                  canRequestFocus: false,
+                  onTap: () => context.go(Routes.main),
+                  borderRadius: BorderRadius.circular(4),
+                  child: Text(
+                    'بامابین',
+                    style: TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w800,
+                      color: desktopInkColor,
+                      letterSpacing: -0.5,
+                    ),
                   ),
                 ),
-              ),
               const Spacer(),
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -87,26 +88,26 @@ class MainHeader extends StatelessWidget {
                           SizedBox(
                             height: 32,
                             child: ElevatedButton(
-                              onPressed: () =>
-                                  context.go(Routes.subscription),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: blueColor,
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
+                                onPressed: () =>
+                                    context.go(Routes.subscription),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: blueColor,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(7),
+                                  ),
+                                  textStyle: const TextStyle(
+                                    fontFamily: 'dana',
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(7),
-                                ),
-                                textStyle: const TextStyle(
-                                  fontFamily: 'dana',
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                child: const Text('خرید اشتراک'),
                               ),
-                              child: const Text('خرید اشتراک'),
-                            ),
                           ),
                           const SizedBox(width: 8),
                           _ProfileAvatar(
@@ -160,21 +161,21 @@ class _HeaderNavButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextButton(
-      onPressed: onTap,
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-        foregroundColor: selected ? desktopInkColor : desktopMutedColor,
-        textStyle: const TextStyle(
-          fontFamily: 'dana',
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
+        onPressed: onTap,
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+          foregroundColor: selected ? desktopInkColor : desktopMutedColor,
+          textStyle: const TextStyle(
+            fontFamily: 'dana',
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
         ),
-      ),
-      child: Text(label),
-    );
+        child: Text(label),
+      );
   }
 }
 
@@ -187,27 +188,28 @@ class _HeaderIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.09),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: SizedBox(
-          width: 45,
-          height: 45,
-          child: Center(
-            child: SvgPicture.asset(
-              asset,
-              width: 20,
-              height: 20,
+        color: Colors.white.withValues(alpha: 0.09),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+        ),
+        child: InkWell(
+          canRequestFocus: false,
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: SizedBox(
+            width: 45,
+            height: 45,
+            child: Center(
+              child: SvgPicture.asset(
+                asset,
+                width: 20,
+                height: 20,
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
 
@@ -219,25 +221,25 @@ class _AuthButtons extends StatelessWidget {
     return SizedBox(
       height: 32,
       child: ElevatedButton(
-        onPressed: () => context.go(Routes.auth),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: blueColor,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          minimumSize: Size.zero,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(7),
+          onPressed: () => context.go(Routes.auth),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: blueColor,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(7),
+            ),
+            textStyle: const TextStyle(
+              fontFamily: 'dana',
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          textStyle: const TextStyle(
-            fontFamily: 'dana',
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
+          child: const Text('ورود / ثبت‌نام'),
         ),
-        child: const Text('ورود / ثبت‌نام'),
-      ),
     );
   }
 }
@@ -264,10 +266,10 @@ class _ProfileAvatar extends StatelessWidget {
         );
 
     return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
           width: 32,
           height: 32,
           decoration: BoxDecoration(
@@ -298,6 +300,6 @@ class _ProfileAvatar extends StatelessWidget {
               : fallback(),
         ),
       ),
-    );
+      );
   }
 }

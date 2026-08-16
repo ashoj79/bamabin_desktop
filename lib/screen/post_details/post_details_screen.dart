@@ -12,6 +12,7 @@ import 'package:bamabin_desktop/screen/post_details/widgets/post_details_hero.da
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
@@ -35,8 +36,8 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: desktopBgColor,
-      child: BlocConsumer<PostDetailsBloc, PostDetailsState>(
+        color: desktopBgColor,
+        child: BlocConsumer<PostDetailsBloc, PostDetailsState>(
         listenWhen: (previous, current) {
           if (current is! PostDetailsViewState) return false;
           if (previous is! PostDetailsViewState) {
@@ -258,6 +259,7 @@ class _CastSection extends StatelessWidget {
                   )
                 : ListView.separated(
                     scrollDirection: Axis.horizontal,
+                    scrollCacheExtent: const ScrollCacheExtent.pixels(2000),
                     itemCount: agents.length,
                     separatorBuilder: (_, _) => const SizedBox(width: 16),
                     itemBuilder: (context, index) =>
@@ -468,6 +470,7 @@ class _RelatedSection extends StatelessWidget {
                   )
                 : ListView.separated(
                     scrollDirection: Axis.horizontal,
+                    scrollCacheExtent: const ScrollCacheExtent.pixels(2000),
                     itemCount: posts.length,
                     separatorBuilder: (_, _) => const SizedBox(width: 10),
                     itemBuilder: (context, index) {

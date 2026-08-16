@@ -292,7 +292,7 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
           ),
         ),
       ),
-    );
+      );
   }
 
   Widget _buildMovieBody() {
@@ -487,25 +487,25 @@ class _CloseButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.09),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(54),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: SizedBox(
-          width: 44,
-          height: 44,
-          child: Icon(
-            Icons.close_rounded,
-            size: 22,
-            color: Colors.white.withValues(alpha: 0.85),
+        color: Colors.white.withValues(alpha: 0.09),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(54),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const CircleBorder(),
+          child: SizedBox(
+            width: 44,
+            height: 44,
+            child: Icon(
+              Icons.close_rounded,
+              size: 22,
+              color: Colors.white.withValues(alpha: 0.85),
+            ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
 
@@ -949,7 +949,7 @@ class _PrimaryActionButton extends StatelessWidget {
           ),
         ),
       ),
-    );
+      );
   }
 }
 

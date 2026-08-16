@@ -1,6 +1,8 @@
 import 'package:bamabin_desktop/config/theme.dart';
 import 'package:bamabin_desktop/core/router.dart';
+import 'package:bamabin_desktop/core/window_chrome.dart';
 import 'package:bamabin_desktop/core/widgets/bamabin_snackbar.dart';
+import 'package:bamabin_desktop/core/widgets/window_title_bar.dart';
 import 'package:bamabin_desktop/screen/splash/bloc/splash_bloc.dart';
 import 'package:bamabin_desktop/utils/deep_link_handler.dart';
 import 'package:bamabin_desktop/utils/di.dart';
@@ -10,6 +12,7 @@ import 'package:media_kit/media_kit.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initDesktopWindow();
   MediaKit.ensureInitialized();
   await setupLocator();
   await DeepLinkHandler.instance.init();
@@ -42,9 +45,16 @@ class BamabinApp extends StatelessWidget {
           ).copyWith(textScaler: TextScaler.linear(1)),
           child: Directionality(
             textDirection: TextDirection.rtl,
-            child: Scaffold(
-              backgroundColor: themeData.colorScheme.surface,
-              body: child ?? const SizedBox.shrink(),
+            child: Overlay.wrap(
+              child: Scaffold(
+                backgroundColor: themeData.colorScheme.surface,
+                body: Column(
+                  children: [
+                    const WindowTitleBar(),
+                    Expanded(child: child ?? const SizedBox.shrink()),
+                  ],
+                ),
+              ),
             ),
           ),
         );

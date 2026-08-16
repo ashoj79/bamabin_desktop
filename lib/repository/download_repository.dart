@@ -24,6 +24,7 @@ class DownloadRepository {
   final Map<String, CancelToken> _cancelTokens = {};
   final Map<String, bool> _pausedIds = {};
   final Map<String, DateTime> _lastProgressEmit = {};
+  final Map<String, _SpeedSample> _speedSamples = {};
 
   List<DownloadTask> _tasks = [];
   File? _queueFile;
@@ -199,11 +200,14 @@ class DownloadRepository {
   Future<void> pause(String id) async {
     _pausedIds[id] = true;
     _cancelTokens[id]?.cancel('paused');
+    _speedSamples.remove(id);
     final task = _find(id);
     if (task == null) return;
     if (task.status == DownloadTaskStatus.active ||
         task.status == DownloadTaskStatus.queued) {
-      await _update(task.copyWith(status: DownloadTaskStatus.paused));
+      await _update(
+        task.copyWith(status: DownloadTaskStatus.paused, speedBytesPerSec: 0),
+      );
     }
     unawaited(_pumpQueue());
   }
@@ -239,6 +243,7 @@ class DownloadRepository {
     }
     _pausedIds.remove(id);
     _lastProgressEmit.remove(id);
+    _speedSamples.remove(id);
     unawaited(_pumpQueue());
   }
 
@@ -332,6 +337,11 @@ class DownloadRepository {
       );
 
       var received = start;
+      _speedSamples[id] = _SpeedSample(
+        at: DateTime.now(),
+        bytes: received,
+        speedBytesPerSec: 0,
+      );
       await for (final chunk in response.data!.stream) {
         if (_pausedIds[id] == true || cancelToken.isCancelled) {
           break;
@@ -340,13 +350,16 @@ class DownloadRepository {
         received += chunk.length;
         final i = _tasks.indexWhere((t) => t.id == id);
         if (i < 0) break;
+
+        final now = DateTime.now();
+        final speed = _updateSpeed(id, received, now);
         _tasks[i] = _tasks[i].copyWith(
           receivedBytes: received,
           totalBytes: absoluteTotal > 0 ? absoluteTotal : _tasks[i].totalBytes,
           status: DownloadTaskStatus.active,
           filePath: filePath,
+          speedBytesPerSec: speed,
         );
-        final now = DateTime.now();
         final last = _lastProgressEmit[id];
         if (last == null || now.difference(last).inMilliseconds >= 200) {
           _lastProgressEmit[id] = now;
@@ -360,7 +373,12 @@ class DownloadRepository {
       if (_pausedIds[id] == true || cancelToken.isCancelled) {
         final i = _tasks.indexWhere((t) => t.id == id);
         if (i >= 0) {
-          await _update(_tasks[i].copyWith(status: DownloadTaskStatus.paused));
+          await _update(
+            _tasks[i].copyWith(
+              status: DownloadTaskStatus.paused,
+              speedBytesPerSec: 0,
+            ),
+          );
         }
         return;
       }
@@ -372,24 +390,40 @@ class DownloadRepository {
           receivedBytes: len,
           totalBytes: len > 0 ? len : absoluteTotal,
           filePath: filePath,
+          speedBytesPerSec: 0,
         ),
       );
     } on DioException catch (e) {
       if (CancelToken.isCancel(e) || _pausedIds[id] == true) {
         final i = _tasks.indexWhere((t) => t.id == id);
         if (i >= 0) {
-          await _update(_tasks[i].copyWith(status: DownloadTaskStatus.paused));
+          await _update(
+            _tasks[i].copyWith(
+              status: DownloadTaskStatus.paused,
+              speedBytesPerSec: 0,
+            ),
+          );
         }
       } else {
         final i = _tasks.indexWhere((t) => t.id == id);
         if (i >= 0) {
-          await _update(_tasks[i].copyWith(status: DownloadTaskStatus.error));
+          await _update(
+            _tasks[i].copyWith(
+              status: DownloadTaskStatus.error,
+              speedBytesPerSec: 0,
+            ),
+          );
         }
       }
     } catch (_) {
       final i = _tasks.indexWhere((t) => t.id == id);
       if (i >= 0) {
-        await _update(_tasks[i].copyWith(status: DownloadTaskStatus.error));
+        await _update(
+          _tasks[i].copyWith(
+            status: DownloadTaskStatus.error,
+            speedBytesPerSec: 0,
+          ),
+        );
       }
     } finally {
       try {
@@ -397,9 +431,37 @@ class DownloadRepository {
         await sink?.close();
       } catch (_) {}
       _cancelTokens.remove(id);
+      _speedSamples.remove(id);
       unawaited(_pumpQueue());
       unawaited(_persist());
     }
+  }
+
+  /// EMA of instantaneous rate; samples at least every 400ms.
+  double _updateSpeed(String id, int receivedBytes, DateTime now) {
+    final sample = _speedSamples[id];
+    if (sample == null) {
+      _speedSamples[id] = _SpeedSample(
+        at: now,
+        bytes: receivedBytes,
+        speedBytesPerSec: 0,
+      );
+      return 0;
+    }
+    final elapsedMs = now.difference(sample.at).inMilliseconds;
+    if (elapsedMs < 400) return sample.speedBytesPerSec;
+
+    final deltaBytes = receivedBytes - sample.bytes;
+    final instant = deltaBytes / (elapsedMs / 1000.0);
+    final smoothed = sample.speedBytesPerSec <= 0
+        ? instant
+        : (sample.speedBytesPerSec * 0.65 + instant * 0.35);
+    _speedSamples[id] = _SpeedSample(
+      at: now,
+      bytes: receivedBytes,
+      speedBytesPerSec: smoothed < 0 ? 0 : smoothed,
+    );
+    return _speedSamples[id]!.speedBytesPerSec;
   }
 
   void dispose() {
@@ -409,4 +471,16 @@ class DownloadRepository {
     _cancelTokens.clear();
     _controller.close();
   }
+}
+
+class _SpeedSample {
+  const _SpeedSample({
+    required this.at,
+    required this.bytes,
+    required this.speedBytesPerSec,
+  });
+
+  final DateTime at;
+  final int bytes;
+  final double speedBytesPerSec;
 }

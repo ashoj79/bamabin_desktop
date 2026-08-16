@@ -2,6 +2,7 @@ import 'package:bamabin_desktop/config/color.dart';
 import 'package:bamabin_desktop/core/routes.dart';
 import 'package:bamabin_desktop/data/local/temp_db.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/genre.dart';
+import 'package:bamabin_desktop/screen/categories/taxonomy_posts_args.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -110,11 +111,11 @@ class _CategoryCardState extends State<_CategoryCard> {
         onTap: () {
           context.push(
             Routes.taxonomyPosts,
-            extra: {
-              'taxonomy': 'genres',
-              'id': genre.id,
-              'title': 'ژانر: ${genre.name}',
-            },
+            extra: TaxonomyPostsArgs(
+              taxonomy: 'genres',
+              id: genre.id,
+              title: genre.name,
+            ),
           );
         },
         child: AnimatedOpacity(

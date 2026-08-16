@@ -214,32 +214,33 @@ class _HeroTopBar extends StatelessWidget {
                           SizedBox(
                             height: 32,
                             child: ElevatedButton(
-                              onPressed: () =>
-                                  context.go(Routes.subscription),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: blueColor,
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
+                                onPressed: () =>
+                                    context.go(Routes.subscription),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: blueColor,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(7),
+                                  ),
+                                  textStyle: const TextStyle(
+                                    fontFamily: 'dana',
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(7),
-                                ),
-                                textStyle: const TextStyle(
-                                  fontFamily: 'dana',
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                child: const Text('خرید اشتراک'),
                               ),
-                              child: const Text('خرید اشتراک'),
-                            ),
                           ),
                           const SizedBox(width: 8),
                           InkWell(
-                            onTap: () => context.go(Routes.profile),
-                            borderRadius: BorderRadius.circular(16),
-                            child: Container(
+                              canRequestFocus: false,
+                              onTap: () => context.go(Routes.profile),
+                              borderRadius: BorderRadius.circular(16),
+                              child: Container(
                               width: 32,
                               height: 32,
                               decoration: BoxDecoration(
@@ -298,25 +299,25 @@ class _AuthButtons extends StatelessWidget {
     return SizedBox(
       height: 32,
       child: ElevatedButton(
-        onPressed: () => context.go(Routes.auth),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: blueColor,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          minimumSize: Size.zero,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(7),
+          onPressed: () => context.go(Routes.auth),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: blueColor,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(7),
+            ),
+            textStyle: const TextStyle(
+              fontFamily: 'dana',
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          textStyle: const TextStyle(
-            fontFamily: 'dana',
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
+          child: const Text('ورود / ثبت‌نام'),
         ),
-        child: const Text('ورود / ثبت‌نام'),
-      ),
     );
   }
 }
@@ -335,33 +336,34 @@ class _HeaderIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.09),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: SizedBox(
-          width: 45,
-          height: 45,
-          child: Center(
-            child: asset != null
-                ? SvgPicture.asset(
-                    asset!,
-                    width: 20,
-                    height: 20,
-                  )
-                : Icon(
-                    icon,
-                    size: 20,
-                    color: Colors.white,
-                  ),
+        color: Colors.white.withValues(alpha: 0.09),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+        ),
+        child: InkWell(
+          canRequestFocus: false,
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: SizedBox(
+            width: 45,
+            height: 45,
+            child: Center(
+              child: asset != null
+                  ? SvgPicture.asset(
+                      asset!,
+                      width: 20,
+                      height: 20,
+                    )
+                  : Icon(
+                      icon,
+                      size: 20,
+                      color: Colors.white,
+                    ),
+            ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
 
@@ -476,9 +478,10 @@ class _PosterReportButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: redColor,
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
+        color: redColor,
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+        canRequestFocus: false,
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
         child: Padding(
@@ -510,8 +513,8 @@ class _PosterReportButton extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
+        ),
+      );
   }
 }
 
@@ -917,55 +920,56 @@ class _VoteChip extends StatelessWidget {
     final textColor = Colors.white.withValues(alpha: 0.75);
 
     return Material(
-      color: Colors.white.withValues(alpha: 0.06),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.28)),
-      ),
-      child: InkWell(
-        onTap: enabled && !isLoading ? onTap : null,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsetsDirectional.only(
-            start: 12,
-            end: 16,
-            top: 8,
-            bottom: 8,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            textDirection: TextDirection.rtl,
-            children: [
-              if (isLoading)
-                SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: blueColor,
+        color: Colors.white.withValues(alpha: 0.06),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.28)),
+        ),
+        child: InkWell(
+          canRequestFocus: false,
+          onTap: enabled && !isLoading ? onTap : null,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.only(
+              start: 12,
+              end: 16,
+              top: 8,
+              bottom: 8,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              textDirection: TextDirection.rtl,
+              children: [
+                if (isLoading)
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: blueColor,
+                    ),
+                  )
+                else
+                  SvgPicture.asset(
+                    svgAsset,
+                    width: 24,
+                    height: 24,
                   ),
-                )
-              else
-                SvgPicture.asset(
-                  svgAsset,
-                  width: 24,
-                  height: 24,
+                const SizedBox(width: 8),
+                Text(
+                  '$count',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                    letterSpacing: -0.18,
+                  ),
                 ),
-              const SizedBox(width: 8),
-              Text(
-                '$count',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: textColor,
-                  letterSpacing: -0.18,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
 
@@ -1102,41 +1106,42 @@ class _PrimaryHeroButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: blueColor,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
+        color: blueColor,
         borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(16, 12, 24, 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            textDirection: TextDirection.rtl,
-            children: [
-              SvgPicture.asset(
-                svgAsset,
-                width: 24,
-                height: 24,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  letterSpacing: -0.18,
+        child: InkWell(
+          canRequestFocus: false,
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(16, 12, 24, 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              textDirection: TextDirection.rtl,
+              children: [
+                SvgPicture.asset(
+                  svgAsset,
+                  width: 24,
+                  height: 24,
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: -0.18,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
 
@@ -1156,50 +1161,51 @@ class _SecondaryHeroButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.09),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.48)),
-      ),
-      child: InkWell(
-        onTap: isLoading ? null : onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            textDirection: TextDirection.rtl,
-            children: [
-              if (isLoading)
-                SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: blueColor,
+        color: Colors.white.withValues(alpha: 0.09),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.48)),
+        ),
+        child: InkWell(
+          canRequestFocus: false,
+          onTap: isLoading ? null : onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              textDirection: TextDirection.rtl,
+              children: [
+                if (isLoading)
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: blueColor,
+                    ),
+                  )
+                else
+                  SvgPicture.asset(
+                    svgAsset,
+                    width: 24,
+                    height: 24,
                   ),
-                )
-              else
-                SvgPicture.asset(
-                  svgAsset,
-                  width: 24,
-                  height: 24,
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white.withValues(alpha: 0.75),
+                    letterSpacing: -0.18,
+                  ),
                 ),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.75),
-                  letterSpacing: -0.18,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
 
@@ -1212,27 +1218,28 @@ class _IconHeroButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.09),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.48)),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: SizedBox(
-          width: 48,
-          height: 48,
-          child: Center(
-            child: SvgPicture.asset(
-              svgAsset,
-              width: 24,
-              height: 24,
+        color: Colors.white.withValues(alpha: 0.09),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.48)),
+        ),
+        child: InkWell(
+          canRequestFocus: false,
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: SizedBox(
+            width: 48,
+            height: 48,
+            child: Center(
+              child: SvgPicture.asset(
+                svgAsset,
+                width: 24,
+                height: 24,
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
 

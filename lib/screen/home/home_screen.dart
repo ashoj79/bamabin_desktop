@@ -5,6 +5,7 @@ import 'package:bamabin_desktop/screen/home/widgets/home_list_section.dart';
 import 'package:bamabin_desktop/screen/home/widgets/home_single_section.dart';
 import 'package:bamabin_desktop/screen/home/widgets/home_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -16,18 +17,20 @@ class HomeScreen extends StatelessWidget {
       child: ValueListenableBuilder(
         valueListenable: TempDb.homeSections,
         builder: (context, sections, _) {
+          final children = <Widget>[];
+          for (final section in sections) {
+            if (section is SliderSection && section.posts.isNotEmpty) {
+              children.add(HomeSlider(posts: section.posts));
+            } else if (section is SingleSection && section.post != null) {
+              children.add(HomeSingleSection(section: section));
+            } else if (section is ListSection) {
+              children.add(HomeListSection(section: section));
+            }
+          }
+          children.add(const SizedBox(height: 24));
           return ListView(
-            children: [
-              for (final section in sections) ...[
-                if (section is SliderSection && section.posts.isNotEmpty)
-                  HomeSlider(posts: section.posts)
-                else if (section is SingleSection && section.post != null)
-                  HomeSingleSection(section: section)
-                else if (section is ListSection)
-                  HomeListSection(section: section),
-              ],
-              const SizedBox(height: 24),
-            ],
+            scrollCacheExtent: const ScrollCacheExtent.pixels(1200),
+            children: children,
           );
         },
       ),
