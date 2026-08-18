@@ -18,12 +18,17 @@ class HomeListSection extends StatelessWidget {
   final ListSection section;
 
   void _onMoreClick(BuildContext context) {
-    if (section.taxonomy != null && section.taxonomyId != null) {
+    final taxonomy = section.taxonomy;
+    final taxonomyId = int.tryParse(section.taxonomyId ?? '');
+    if (taxonomy != null &&
+        taxonomy.isNotEmpty &&
+        taxonomyId != null &&
+        taxonomyId > 0) {
       context.push(
         Routes.taxonomyPosts,
         extra: TaxonomyPostsArgs(
-          taxonomy: section.taxonomy!,
-          id: int.tryParse(section.taxonomyId!) ?? 0,
+          taxonomy: taxonomy,
+          id: taxonomyId,
           title: section.name,
         ),
       );
@@ -31,17 +36,17 @@ class HomeListSection extends StatelessWidget {
     }
 
     context.push(
-      Routes.postTypeArchive,
-      extra: {
-        'postTypes': section.postTypes.join(','),
-        'title': section.name,
-        'broadcastStatus': section.broadcastStatuses.join(','),
-        'miniSerial': section.miniSerial,
-        'free': section.isFree,
-        'dubbed': section.isDubbed,
-        'dlboxType': section.dlboxType,
-        'orderBy': section.orderBy,
-      },
+      Routes.taxonomyPosts,
+      extra: TaxonomyPostsArgs.archive(
+        title: section.name,
+        archiveType: section.postTypes.join(','),
+        broadcastStatus: section.broadcastStatuses.join(','),
+        dlboxType: section.dlboxType,
+        miniSerial: section.miniSerial ? 'on' : '',
+        free: section.isFree ? 'on' : '',
+        dubbed: section.isDubbed ? 'on' : '',
+        orderBy: section.orderBy,
+      ),
     );
   }
 

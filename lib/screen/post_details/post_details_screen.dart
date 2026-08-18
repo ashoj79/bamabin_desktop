@@ -1,11 +1,13 @@
 import 'package:bamabin_desktop/config/color.dart';
 import 'package:bamabin_desktop/core/routes.dart';
+import 'package:bamabin_desktop/core/widgets/bamabin_back_button.dart';
 import 'package:bamabin_desktop/core/widgets/bamabin_snackbar.dart';
 import 'package:bamabin_desktop/core/widgets/post_widget.dart';
 import 'package:bamabin_desktop/core/widgets/view_all_button.dart';
 import 'package:bamabin_desktop/data/local/temp_db.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/post.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/post_details.dart';
+import 'package:bamabin_desktop/screen/categories/taxonomy_posts_args.dart';
 import 'package:bamabin_desktop/screen/post_details/bloc/post_details_bloc.dart';
 import 'package:bamabin_desktop/screen/post_details/widgets/post_details_comments.dart';
 import 'package:bamabin_desktop/screen/post_details/widgets/post_details_hero.dart';
@@ -73,10 +75,17 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                 },
                 builder: (context, state) {
                   if (state is! PostDetailsViewState) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        color: Color(0xFF29B6F6),
-                      ),
+                    return Stack(
+                      children: [
+                        Center(
+                          child: CircularProgressIndicator(color: blueColor),
+                        ),
+                        const PositionedDirectional(
+                          top: 20,
+                          start: 24,
+                          child: BamabinBackButton(),
+                        ),
+                      ],
                     );
                   }
                   return _PostDetailsBody(
@@ -143,16 +152,19 @@ class _PostDetailsBody extends StatelessWidget {
     return _heroUrl;
   }
 
-  List<String> get _genreNames {
+  List<({int id, String name})> get _genres {
     final ids = details?.genresId.isNotEmpty == true
         ? details!.genresId
         : preview.genresId;
     if (ids.isEmpty || TempDb.genres.isEmpty) return const [];
     final byId = {for (final g in TempDb.genres) g.id: g.name};
     return ids
-        .map((id) => byId[id])
-        .whereType<String>()
-        .where((name) => name.isNotEmpty)
+        .map((id) {
+          final name = byId[id];
+          if (name == null || name.isEmpty) return null;
+          return (id: id, name: name);
+        })
+        .whereType<({int id, String name})>()
         .take(4)
         .toList();
   }
@@ -173,7 +185,7 @@ class _PostDetailsBody extends StatelessWidget {
             data: details,
             heroUrl: _heroUrl,
             posterUrl: _posterUrl,
-            genreNames: _genreNames,
+            genres: _genres,
             mainTitle: _mainTitle,
             subTitle: _subTitle,
             imdbRate: _imdbRate,
@@ -440,11 +452,11 @@ class _RelatedSection extends StatelessWidget {
   void _onViewAll(BuildContext context) {
     if (postType == null || postType!.isEmpty) return;
     context.push(
-      Routes.postTypeArchive,
-      extra: {
-        'postTypes': postType,
-        'title': 'محتوای مشابه',
-      },
+      Routes.taxonomyPosts,
+      extra: TaxonomyPostsArgs.archive(
+        title: 'محتوای مشابه',
+        archiveType: postType!,
+      ),
     );
   }
 

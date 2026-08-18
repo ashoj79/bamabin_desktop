@@ -135,8 +135,8 @@ class ListSection extends HomeSection {
             .toList() ??
         [];
 
-    final taxonomy = data['taxonomy'] as String?;
-    final taxonomyId = data['taxonomy_id'] as String?;
+    final taxonomy = data['taxonomy']?.toString().trim();
+    final taxonomyId = data['taxonomy_id']?.toString().trim();
     final miniSerial =
         (taxonomy == null && data.containsKey('mini_serial'))
             ? (data['mini_serial'] ?? false)
@@ -148,8 +148,10 @@ class ListSection extends HomeSection {
 
     return ListSection(
       name: data['name'] ?? '',
-      taxonomy: taxonomy,
-      taxonomyId: taxonomyId,
+      taxonomy: (taxonomy == null || taxonomy.isEmpty) ? null : taxonomy,
+      taxonomyId: (taxonomyId == null || taxonomyId.isEmpty || taxonomyId == '0')
+          ? null
+          : taxonomyId,
       miniSerial: miniSerial,
       broadcastStatuses: broadcastStatuses,
       dlboxType: dlboxType,

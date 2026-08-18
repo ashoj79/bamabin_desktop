@@ -1,4 +1,5 @@
 import 'package:bamabin_desktop/config/color.dart';
+import 'package:bamabin_desktop/core/widgets/bamabin_back_button.dart';
 import 'package:bamabin_desktop/core/widgets/bamabin_empty_state.dart';
 import 'package:bamabin_desktop/core/widgets/filters.dart';
 import 'package:bamabin_desktop/core/widgets/post_widget.dart';
@@ -80,13 +81,21 @@ class _TaxonomyPostsScreenState extends State<TaxonomyPostsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  widget.title,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: desktopInkColor,
-                  ),
+                Row(
+                  children: [
+                    const BamabinBackButton(),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        widget.title,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: desktopInkColor,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 20),
                 Filters(

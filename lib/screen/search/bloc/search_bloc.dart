@@ -111,8 +111,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
   SearchFilters get filters => _filters;
 
-  bool get _canSearch =>
-      _lastQuery.length >= 2 || (_allowShortQuery && _filters.hasActiveFilters);
+  bool get _canSearch => _lastQuery.length >= 2 || _allowShortQuery;
 
   Future<void> _onReset(
     SearchResetEvent event,

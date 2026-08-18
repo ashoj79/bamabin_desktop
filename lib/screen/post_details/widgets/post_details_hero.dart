@@ -1,9 +1,13 @@
 import 'package:bamabin_desktop/config/color.dart';
 import 'package:bamabin_desktop/core/routes.dart';
+import 'package:bamabin_desktop/core/widgets/bamabin_back_button.dart';
 import 'package:bamabin_desktop/core/widgets/bamabin_snackbar.dart';
 import 'package:bamabin_desktop/data/local/temp_db.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/like_info.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/post_details.dart';
+import 'package:bamabin_desktop/screen/categories/taxonomy_posts_args.dart';
+import 'package:bamabin_desktop/screen/search/bloc/search_bloc.dart';
+import 'package:bamabin_desktop/screen/search/search_launch_args.dart';
 import 'package:bamabin_desktop/screen/post_details/bloc/post_details_bloc.dart';
 import 'package:bamabin_desktop/screen/post_details/widgets/post_download_overlay.dart';
 import 'package:bamabin_desktop/screen/post_details/widgets/post_online_play_overlay.dart';
@@ -22,7 +26,7 @@ class PostDetailsHero extends StatelessWidget {
     this.data,
     required this.heroUrl,
     required this.posterUrl,
-    required this.genreNames,
+    required this.genres,
     required this.mainTitle,
     required this.subTitle,
     required this.imdbRate,
@@ -45,7 +49,7 @@ class PostDetailsHero extends StatelessWidget {
   final PostDetails? data;
   final String heroUrl;
   final String posterUrl;
-  final List<String> genreNames;
+  final List<({int id, String name})> genres;
   final String mainTitle;
   final String subTitle;
   final String imdbRate;
@@ -87,7 +91,7 @@ class PostDetailsHero extends StatelessWidget {
                   child: _HeroContent(
                     postId: postId,
                     data: data,
-                    genreNames: genreNames,
+                    genres: genres,
                     mainTitle: mainTitle,
                     subTitle: subTitle,
                     imdbRate: imdbRate,
@@ -110,256 +114,14 @@ class PostDetailsHero extends StatelessWidget {
               ],
             ),
           ),
+          const PositionedDirectional(
+            top: 20,
+            start: 24,
+            child: BamabinBackButton(),
+          ),
         ],
       ),
     );
-  }
-}
-
-class _HeroTopBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final initial = TempDb.username.isNotEmpty
-        ? TempDb.username.characters.first
-        : 'ب';
-    final avatarUrl = TempDb.avatar;
-
-    Widget avatarFallback() => Text(
-          initial,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
-        );
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(72, 16, 72, 0),
-      child: SafeArea(
-        bottom: false,
-        child: SizedBox(
-          height: 54,
-          child: Row(
-            textDirection: TextDirection.rtl,
-            children: [
-              _HeaderIconButton(
-                icon: Icons.arrow_back,
-                onTap: () {
-                  if (context.canPop()) {
-                    context.pop();
-                  } else {
-                    context.go(Routes.main);
-                  }
-                },
-              ),
-              const SizedBox(width: 24),
-              SvgPicture.asset(
-                'assets/img/bamabin_logo.svg',
-                width: 140,
-                height: 32,
-              ),
-              const Spacer(),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _HeaderIconButton(
-                    asset: 'assets/img/header_search.svg',
-                    onTap: () => context.go(Routes.search),
-                  ),
-                  const SizedBox(width: 8),
-                  ValueListenableBuilder<bool>(
-                    valueListenable: TempDb.haveUnreadNotif,
-                    builder: (context, haveUnread, _) {
-                      return Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          _HeaderIconButton(
-                            asset: 'assets/img/header_bell.svg',
-                            onTap: () =>
-                                context.go(Routes.notifications),
-                          ),
-                          if (haveUnread)
-                            Positioned(
-                              top: 10,
-                              left: 10,
-                              child: Container(
-                                width: 7,
-                                height: 7,
-                                decoration: BoxDecoration(
-                                  color: blueColor,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  ValueListenableBuilder<bool>(
-                    valueListenable: TempDb.isLoggedIn,
-                    builder: (context, isLoggedIn, _) {
-                      if (!isLoggedIn) {
-                        return const _AuthButtons();
-                      }
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            height: 32,
-                            child: ElevatedButton(
-                                onPressed: () =>
-                                    context.go(Routes.subscription),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: blueColor,
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(7),
-                                  ),
-                                  textStyle: const TextStyle(
-                                    fontFamily: 'dana',
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                child: const Text('خرید اشتراک'),
-                              ),
-                          ),
-                          const SizedBox(width: 8),
-                          InkWell(
-                              mouseCursor: SystemMouseCursors.click,
-                              canRequestFocus: false,
-                              onTap: () => context.go(Routes.profile),
-                              borderRadius: BorderRadius.circular(16),
-                              child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    desktopAccentDarkColor,
-                                    blueColor,
-                                  ],
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color:
-                                        blueColor.withValues(alpha: 0.24),
-                                    spreadRadius: 2,
-                                  ),
-                                ],
-                              ),
-                              clipBehavior: Clip.antiAlias,
-                              alignment: Alignment.center,
-                              child: avatarUrl.isNotEmpty
-                                  ? CachedNetworkImage(
-                                      imageUrl: avatarUrl,
-                                      width: 32,
-                                      height: 32,
-                                      fit: BoxFit.cover,
-                                      errorWidget: (context, url, error) =>
-                                          Center(child: avatarFallback()),
-                                      placeholder: (context, url) =>
-                                          Center(child: avatarFallback()),
-                                    )
-                                  : avatarFallback(),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AuthButtons extends StatelessWidget {
-  const _AuthButtons();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 32,
-      child: ElevatedButton(
-          onPressed: () => context.go(Routes.auth),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: blueColor,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(7),
-            ),
-            textStyle: const TextStyle(
-              fontFamily: 'dana',
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          child: const Text('ورود / ثبت‌نام'),
-        ),
-    );
-  }
-}
-
-class _HeaderIconButton extends StatelessWidget {
-  const _HeaderIconButton({
-    this.asset,
-    this.icon,
-    required this.onTap,
-  }) : assert(asset != null || icon != null);
-
-  final String? asset;
-  final IconData? icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-        color: Colors.white.withValues(alpha: 0.09),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-        ),
-        child: InkWell(
-          mouseCursor: SystemMouseCursors.click,
-          canRequestFocus: false,
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: SizedBox(
-            width: 45,
-            height: 45,
-            child: Center(
-              child: asset != null
-                  ? SvgPicture.asset(
-                      asset!,
-                      width: 20,
-                      height: 20,
-                    )
-                  : Icon(
-                      icon,
-                      size: 20,
-                      color: Colors.white,
-                    ),
-            ),
-          ),
-        ),
-      );
   }
 }
 
@@ -519,7 +281,7 @@ class _HeroContent extends StatelessWidget {
   const _HeroContent({
     required this.postId,
     this.data,
-    required this.genreNames,
+    required this.genres,
     required this.mainTitle,
     required this.subTitle,
     required this.imdbRate,
@@ -541,7 +303,7 @@ class _HeroContent extends StatelessWidget {
 
   final int postId;
   final PostDetails? data;
-  final List<String> genreNames;
+  final List<({int id, String name})> genres;
   final String mainTitle;
   final String subTitle;
   final String imdbRate;
@@ -566,12 +328,14 @@ class _HeroContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (genreNames.isNotEmpty) ...[
+        if (genres.isNotEmpty) ...[
           Wrap(
             spacing: 6,
             runSpacing: 6,
             alignment: WrapAlignment.start,
-            children: genreNames.map((g) => _BrandTag(label: g)).toList(),
+            children: genres
+                .map((g) => _BrandTag(id: g.id, label: g.name))
+                .toList(),
           ),
           const SizedBox(height: 16),
         ],
@@ -655,25 +419,43 @@ class _HeroContent extends StatelessWidget {
 }
 
 class _BrandTag extends StatelessWidget {
-  const _BrandTag({required this.label});
+  const _BrandTag({required this.id, required this.label});
 
+  final int id;
   final String label;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: blueColor.withValues(alpha: 0.1),
+    return Material(
+      color: blueColor.withValues(alpha: 0.1),
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: () {
+          context.push(
+            Routes.taxonomyPosts,
+            extra: TaxonomyPostsArgs(
+              taxonomy: 'genres',
+              id: id,
+              title: label,
+            ),
+          );
+        },
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: blueColor.withValues(alpha: 0.35)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: blueColor,
+        mouseCursor: SystemMouseCursors.click,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: blueColor.withValues(alpha: 0.35)),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: blueColor,
+            ),
+          ),
         ),
       ),
     );
@@ -681,13 +463,14 @@ class _BrandTag extends StatelessWidget {
 }
 
 class _MetaTag extends StatelessWidget {
-  const _MetaTag({required this.label});
+  const _MetaTag({required this.label, this.onTap});
 
   final String label;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final child = Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.06),
@@ -701,6 +484,18 @@ class _MetaTag extends StatelessWidget {
           fontWeight: FontWeight.w500,
           color: Colors.white.withValues(alpha: 0.85),
         ),
+      ),
+    );
+
+    if (onTap == null) return child;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        mouseCursor: SystemMouseCursors.click,
+        child: child,
       ),
     );
   }
@@ -753,12 +548,37 @@ class _HeroMetaRow extends StatelessWidget {
 
     if (hasDubbed) {
       addDot();
-      items.add(const _MetaTag(label: 'دوبله فارسی'));
+      items.add(
+        _MetaTag(
+          label: 'دوبله فارسی',
+          onTap: () {
+            context.push(
+              Routes.search,
+              extra: const SearchLaunchArgs(
+                title: 'دوبله فارسی',
+                filters: SearchFilters(isDubbed: true),
+              ),
+            );
+          },
+        ),
+      );
     }
 
     if (hasSubtitle) {
       addDot();
-      items.add(const _MetaTag(label: 'زیرنویس فارسی'));
+      items.add(
+        _MetaTag(
+          label: 'زیرنویس فارسی',
+          onTap: () {
+            context.push(
+              Routes.search,
+              extra: const SearchLaunchArgs(
+                title: 'زیرنویس فارسی',
+              ),
+            );
+          },
+        ),
+      );
     }
 
     if (duration != null && duration!.isNotEmpty) {

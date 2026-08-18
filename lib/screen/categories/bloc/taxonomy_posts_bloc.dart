@@ -26,12 +26,19 @@ class TaxonomyPostsBloc extends Bloc<TaxonomyPostsEvent, TaxonomyPostsState> {
   var _isFetching = false;
   PostType? _postType;
   int _genreId = 0;
-  String _orderBy = '';
+  late String _orderBy = args.orderBy;
   int _imdb = 0;
 
   bool get lockGenre => args.taxonomy == 'genres';
 
   int get _effectiveGenreId => lockGenre ? 0 : _genreId;
+
+  String get _archiveType {
+    final selected = _postType?.value ?? '';
+    if (selected.isNotEmpty) return selected;
+    if (args.archiveType.isNotEmpty) return args.archiveType;
+    return 'movies';
+  }
 
   Future<void> _onLoad(
     TaxonomyPostsLoadEvent event,
@@ -78,15 +85,28 @@ class TaxonomyPostsBloc extends Bloc<TaxonomyPostsEvent, TaxonomyPostsState> {
     required bool reset,
   }) async {
     _isFetching = true;
-    final result = await _videoRepository.getPostWithTaxonomy(
-      args.taxonomy,
-      args.id,
-      _effectiveGenreId,
-      _postType?.value ?? '',
-      _orderBy,
-      _imdb,
-      _page + 1,
-    );
+    final result = args.isArchive
+        ? await _videoRepository.getPosts(
+            _archiveType,
+            _genreId,
+            _imdb,
+            _orderBy,
+            broadcastStatus: args.broadcastStatus,
+            dlboxType: args.dlboxType,
+            miniSerial: args.miniSerial,
+            free: args.free,
+            dubbed: args.dubbed,
+            page: _page + 1,
+          )
+        : await _videoRepository.getPostWithTaxonomy(
+            args.taxonomy,
+            args.id,
+            _effectiveGenreId,
+            _postType?.value ?? '',
+            _orderBy,
+            _imdb,
+            _page + 1,
+          );
     if (isClosed) return;
     _isFetching = false;
 

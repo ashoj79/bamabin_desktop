@@ -19,6 +19,7 @@ import 'package:bamabin_desktop/screen/post_details/post_details_screen.dart';
 import 'package:bamabin_desktop/screen/profile/bloc/profile_bloc.dart';
 import 'package:bamabin_desktop/screen/profile/profile_screen.dart';
 import 'package:bamabin_desktop/screen/search/bloc/search_bloc.dart';
+import 'package:bamabin_desktop/screen/search/search_launch_args.dart';
 import 'package:bamabin_desktop/screen/search/search_screen.dart';
 import 'package:bamabin_desktop/screen/splash/splash_screen.dart';
 import 'package:bamabin_desktop/screen/subscription/bloc/subscription_bloc.dart';
@@ -68,10 +69,15 @@ final GoRouter router = GoRouter(
         ),
         GoRoute(
           path: Routes.search,
-          builder: (context, state) => BlocProvider(
-            create: (_) => locator<SearchBloc>(),
-            child: const SearchScreen(),
-          ),
+          builder: (context, state) {
+            final extra = state.extra;
+            return BlocProvider(
+              create: (_) => locator<SearchBloc>(),
+              child: SearchScreen(
+                launchArgs: extra is SearchLaunchArgs ? extra : null,
+              ),
+            );
+          },
         ),
         GoRoute(
           path: Routes.genresList,
@@ -189,6 +195,16 @@ final GoRouter router = GoRouter(
           ),
         ),
         GoRoute(
+          path: Routes.postTypeArchive,
+          builder: (context, state) {
+            final args = TaxonomyPostsArgs.fromExtra(state.extra);
+            return BlocProvider(
+              create: (_) => locator<TaxonomyPostsBloc>(param1: args),
+              child: TaxonomyPostsScreen(title: args.title),
+            );
+          },
+        ),
+        GoRoute(
           path: Routes.postDetails,
           builder: (context, state) {
             final extra = state.extra;
@@ -222,13 +238,6 @@ final GoRouter router = GoRouter(
           create: (_) => locator<PlayerBloc>(),
           child: PlayerScreen(args: extra),
         );
-      },
-    ),
-    GoRoute(
-      path: Routes.postTypeArchive,
-      builder: (context, state) {
-        final title = (state.extra as Map?)?['title'] as String? ?? 'آرشیو';
-        return MainPlaceholderPage(title: title);
       },
     ),
   ],

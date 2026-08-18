@@ -5,6 +5,7 @@ import 'package:bamabin_desktop/config/color.dart';
 import 'package:bamabin_desktop/core/widgets/post_widget.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/post.dart';
 import 'package:bamabin_desktop/screen/search/bloc/search_bloc.dart';
+import 'package:bamabin_desktop/screen/search/search_launch_args.dart';
 import 'package:bamabin_desktop/screen/search/widgets/search_advanced_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,7 +13,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  const SearchScreen({super.key, this.launchArgs});
+
+  final SearchLaunchArgs? launchArgs;
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -31,7 +34,19 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    context.read<SearchBloc>().add(SearchResetEvent());
+    final launchArgs = widget.launchArgs;
+    if (launchArgs != null) {
+      _filters = launchArgs.filters;
+      _showingFilterResults = true;
+      context.read<SearchBloc>().add(
+            SearchFiltersSubmitEvent(
+              query: '',
+              filters: launchArgs.filters,
+            ),
+          );
+    } else {
+      context.read<SearchBloc>().add(SearchResetEvent());
+    }
   }
 
   @override
@@ -124,6 +139,17 @@ class _SearchScreenState extends State<SearchScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if (widget.launchArgs?.title.isNotEmpty == true) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    widget.launchArgs!.title,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: desktopInkColor,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 _SearchBarRow(
                   controller: _controller,
