@@ -402,7 +402,7 @@ class _CommentBodyState extends State<_CommentBody> {
       widget.content,
       textAlign: TextAlign.justify,
       style: const TextStyle(
-        fontSize: 20,
+        fontSize: 17,
         fontWeight: FontWeight.w500,
         color: Color(0xFFF5EFE6),
         height: 24 / 20,

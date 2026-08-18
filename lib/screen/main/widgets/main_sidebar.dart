@@ -85,6 +85,7 @@ class MainSidebar extends StatelessWidget {
     Routes.watchlist,
     Routes.recentlyViewed,
     Routes.watchStatusPosts,
+    Routes.userLists,
     Routes.downloadManager,
     Routes.tickets,
     Routes.notifications,

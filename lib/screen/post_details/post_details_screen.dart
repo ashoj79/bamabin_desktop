@@ -449,17 +449,6 @@ class _RelatedSection extends StatelessWidget {
   final bool isLoading;
   final String? postType;
 
-  void _onViewAll(BuildContext context) {
-    if (postType == null || postType!.isEmpty) return;
-    context.push(
-      Routes.taxonomyPosts,
-      extra: TaxonomyPostsArgs.archive(
-        title: 'محتوای مشابه',
-        archiveType: postType!,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -480,8 +469,6 @@ class _RelatedSection extends StatelessWidget {
                 ),
               ),
             ),
-            if (!isLoading && posts.isNotEmpty)
-              ViewAllButton(onPressed: () => _onViewAll(context)),
           ],
         ),
         const SizedBox(height: 14),

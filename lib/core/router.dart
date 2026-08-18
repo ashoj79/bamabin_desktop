@@ -122,6 +122,11 @@ final GoRouter router = GoRouter(
           ),
         ),
         GoRoute(
+          path: Routes.userLists,
+          builder: (context, state) =>
+              const MainPlaceholderPage(title: 'لیست‌های من'),
+        ),
+        GoRoute(
           path: Routes.watchStatusPosts,
           builder: (context, state) => BlocProvider(
             create: (_) => locator<WatchStatusBloc>(),

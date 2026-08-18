@@ -1,7 +1,7 @@
 import 'package:bamabin_desktop/config/color.dart';
 import 'package:bamabin_desktop/core/routes.dart';
 import 'package:bamabin_desktop/data/local/temp_db.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:bamabin_desktop/screen/main/widgets/header_profile_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
@@ -110,9 +110,7 @@ class MainHeader extends StatelessWidget {
                               ),
                           ),
                           const SizedBox(width: 8),
-                          _ProfileAvatar(
-                            onTap: () => context.go(Routes.profile),
-                          ),
+                          const HeaderProfileButton(),
                         ],
                       );
                     },
@@ -241,65 +239,5 @@ class _AuthButtons extends StatelessWidget {
           child: const Text('ورود / ثبت‌نام'),
         ),
     );
-  }
-}
-
-class _ProfileAvatar extends StatelessWidget {
-  const _ProfileAvatar({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final initial = TempDb.username.isNotEmpty
-        ? TempDb.username.characters.first
-        : 'ب';
-    final avatarUrl = TempDb.avatar;
-
-    Widget fallback() => Text(
-          initial,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
-        );
-
-    return MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          onTap: onTap,
-          child: Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [desktopAccentDarkColor, blueColor],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: blueColor.withValues(alpha: 0.24),
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          clipBehavior: Clip.antiAlias,
-          alignment: Alignment.center,
-          child: avatarUrl.isNotEmpty
-              ? CachedNetworkImage(
-                  imageUrl: avatarUrl,
-                  width: 32,
-                  height: 32,
-                  fit: BoxFit.cover,
-                  errorWidget: (_, _, _) => Center(child: fallback()),
-                  placeholder: (_, _) => Center(child: fallback()),
-                )
-              : fallback(),
-        ),
-      ),
-      );
   }
 }
