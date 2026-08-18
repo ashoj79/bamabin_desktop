@@ -57,18 +57,16 @@ class DownloadRepository {
   }
 
   Future<Directory> _resolveDownloadsDir() async {
-    Directory? dir;
+    Directory documents;
     try {
-      dir = await getDownloadsDirectory();
+      documents = await getApplicationDocumentsDirectory();
     } catch (_) {
-      dir = null;
-    }
-    if (dir == null) {
       final home = Platform.environment['HOME'] ??
           Platform.environment['USERPROFILE'] ??
           '.';
-      dir = Directory(p.join(home, 'Downloads'));
+      documents = Directory(p.join(home, 'Documents'));
     }
+    final dir = Directory(p.join(documents.path, 'bamabin'));
     if (!await dir.exists()) {
       await dir.create(recursive: true);
     }
@@ -224,6 +222,24 @@ class DownloadRepository {
   }
 
   Future<void> retry(String id) => resume(id);
+
+  Future<void> revealInFileManager(String filePath) async {
+    if (filePath.isEmpty) return;
+    final file = File(filePath);
+    if (!await file.exists()) return;
+    if (Platform.isWindows) {
+      await Process.run('explorer.exe', ['/select,', file.path]);
+      return;
+    }
+    if (Platform.isMacOS) {
+      await Process.run('open', ['-R', file.path]);
+      return;
+    }
+    final dir = Directory(p.dirname(file.path));
+    if (await dir.exists()) {
+      await Process.run('xdg-open', [dir.path]);
+    }
+  }
 
   Future<void> delete(String id, {bool deleteFile = true}) async {
     _pausedIds[id] = true;

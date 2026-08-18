@@ -429,6 +429,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
       timer,
     ) {
       if (!mounted) return;
+      if (widget.args.isLocalPlayback) return;
 
       final position = _player.state.position.inMilliseconds;
       final duration = _player.state.duration.inMilliseconds;
@@ -467,7 +468,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 
   Future<void> _loadWatchedEpisodes() async {
-    if (!widget.args.data.isSeries) return;
+    if (widget.args.isLocalPlayback || !widget.args.data.isSeries) return;
     final list = await locator<VideoRepository>().getWatchedEpisodes(
       widget.args.data.id,
     );
@@ -478,6 +479,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 
   Future<void> _tryResumePlayback() async {
+    if (widget.args.isLocalPlayback) return;
     final season = widget.args.data.isSeries ? _seasonIndex : -1;
     final videoRepository = locator<VideoRepository>();
 
@@ -580,6 +582,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 
   Future<void> _saveWatchData() async {
+    if (widget.args.isLocalPlayback) return;
     final positionMs = _player.state.position.inMilliseconds;
     final durationMs = _player.state.duration.inMilliseconds;
     final isEnd = durationMs > 0 && positionMs >= (durationMs * 0.8);
@@ -621,6 +624,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 
   String getPlayLink() {
+    final localPath = widget.args.localFilePath;
+    if (localPath != null && localPath.isNotEmpty) {
+      return Uri.file(localPath).toString();
+    }
+
     var url = '';
 
     if (widget.args.data.isSeries) {
@@ -735,6 +743,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 
   List<String> _qualityLabels() {
+    if (widget.args.isLocalPlayback) return const [];
     if (widget.args.data.isSeries) {
       return widget.args.data.seasons![_seasonIndex].items
           .getAllQualities(_type, _episodeIndex);
@@ -1241,6 +1250,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                   playing: _playing,
                                   isLoaded: _isLoaded,
                                   isSeries: widget.args.data.isSeries,
+                                  showQuality: !widget.args.isLocalPlayback,
                                   qualityLabel: _currentQualityCode,
                                   volume: _volume,
                                   audioTrackCount: _usableAudioTracks().length,
@@ -1429,6 +1439,7 @@ class _PlayerBottomBar extends StatelessWidget {
     required this.playing,
     required this.isLoaded,
     required this.isSeries,
+    this.showQuality = true,
     required this.qualityLabel,
     required this.volume,
     required this.audioTrackCount,
@@ -1459,6 +1470,7 @@ class _PlayerBottomBar extends StatelessWidget {
   final bool playing;
   final bool isLoaded;
   final bool isSeries;
+  final bool showQuality;
   final String qualityLabel;
   final double volume;
   final int audioTrackCount;
@@ -1626,12 +1638,14 @@ class _PlayerBottomBar extends StatelessWidget {
                         ),
                       ],
                     ],
-                    const SizedBox(width: 8),
-                    _QualityButton(
-                      buttonKey: qualityButtonKey,
-                      qualityLabel: qualityLabel,
-                      onTap: onShowQuality,
-                    ),
+                    if (showQuality) ...[
+                      const SizedBox(width: 8),
+                      _QualityButton(
+                        buttonKey: qualityButtonKey,
+                        qualityLabel: qualityLabel,
+                        onTap: onShowQuality,
+                      ),
+                    ],
                     const SizedBox(width: 8),
                     _PlayerIconButton(
                       asset: 'assets/img/player/player_settings.svg',

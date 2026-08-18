@@ -198,7 +198,7 @@ class _Poster extends StatelessWidget {
                     if (post.imdbRate.isNotEmpty)
                       Positioned(
                         left: 10,
-                        bottom: 8,
+                        top: 8,
                         child: Directionality(
                           textDirection: TextDirection.ltr,
                           child: Text.rich(
@@ -230,7 +230,7 @@ class _Poster extends StatelessWidget {
                       ),
                     Positioned(
                       right: 5,
-                      bottom: 8,
+                      top: 8,
                       child: Directionality(
                         textDirection: TextDirection.ltr,
                         child: Row(

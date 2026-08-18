@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:bamabin_desktop/core/routes.dart';
 import 'package:bamabin_desktop/core/widgets/dialogs.dart';
 import 'package:bamabin_desktop/core/widgets/loading_widget.dart';
 import 'package:bamabin_desktop/screen/splash/bloc/splash_bloc.dart';
+import 'package:bamabin_desktop/screen/splash/widgets/splash_offline_dialog.dart';
 import 'package:bamabin_desktop/utils/deep_link_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -87,14 +86,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                 ),
               ),
-              if (state is SplashError)
-                ErrorDialog(
-                  message: state.message,
-                  onCloseClick: () => exit(0),
-                  onRetryClick: () {
-                    context.read<SplashBloc>().add(GetStartupData());
-                  },
-                ),
+              if (state is SplashError) const SplashOfflineDialog(),
               if (_showUpdateDialog && state is SplashSuccess)
                 UpdateDialog(appVersion: state.appVersion),
             ],

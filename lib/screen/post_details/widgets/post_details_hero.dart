@@ -75,12 +75,6 @@ class PostDetailsHero extends StatelessWidget {
           Positioned.fill(
             child: _HeroBackground(imageUrl: heroUrl),
           ),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: _HeroTopBar(),
-          ),
           Padding(
             padding: _heroPadding,
             child: Row(

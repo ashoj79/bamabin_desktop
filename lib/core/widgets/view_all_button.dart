@@ -23,17 +23,17 @@ class ViewAllButton extends StatelessWidget {
           children: [
             SvgPicture.asset(
               'assets/img/arrow_left.svg',
-              width: 20,
-              height: 20,
+              width: 16,
+              height: 16,
             ),
             const SizedBox(width: 8),
             Text(
               'مشاهده همه',
               style: TextStyle(
                 fontFamily: 'dana',
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.w400,
-                height: 22 / 16,
+                // height: 22 / 16,
                 letterSpacing: -0.18,
                 color: desktopInkColor,
               ),

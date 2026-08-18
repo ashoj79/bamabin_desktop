@@ -1,12 +1,10 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:bamabin_desktop/data/local/model/download_task.dart';
 import 'package:bamabin_desktop/repository/download_repository.dart';
 import 'package:bamabin_desktop/screen/download_manager/bloc/download_manager_event.dart';
 import 'package:bamabin_desktop/screen/download_manager/bloc/download_manager_state.dart';
 import 'package:bloc/bloc.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class DownloadManagerBloc
     extends Bloc<DownloadManagerEvent, DownloadManagerState> {
@@ -79,6 +77,7 @@ class DownloadManagerBloc
       quality: event.quality,
       sizeLabel: event.sizeLabel,
     );
+    emit(state.copyWith(enqueueTick: state.enqueueTick + 1));
   }
 
   Future<void> _onPaused(
@@ -176,10 +175,7 @@ class DownloadManagerBloc
       }
     }
     if (task == null || task.filePath.isEmpty) return;
-    final file = File(task.filePath);
-    if (!await file.exists()) return;
-    final uri = Uri.file(task.filePath);
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+    await _repository.revealInFileManager(task.filePath);
   }
 
   @override

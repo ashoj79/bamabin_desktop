@@ -4,17 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
-class MainSidebar extends StatefulWidget {
-  const MainSidebar({super.key});
+class MainSidebar extends StatelessWidget {
+  const MainSidebar({super.key, required this.expandT});
 
-  @override
-  State<MainSidebar> createState() => _MainSidebarState();
-}
-
-class _MainSidebarState extends State<MainSidebar> {
-  static const _collapsedWidth = 80.0;
-  static const _expandedWidth = 266.0;
-  static const _animDuration = Duration(milliseconds: 220);
+  /// 0 = collapsed, 1 = expanded.
+  final double expandT;
 
   static const _navItems = <_SidebarItem>[
     _SidebarItem(
@@ -98,10 +92,6 @@ class _MainSidebarState extends State<MainSidebar> {
     Routes.top250Series,
   };
 
-  bool _hovered = false;
-
-  bool get _expanded => _hovered;
-
   bool _isSelected(String location, String route) {
     if (route == Routes.main) {
       return location == Routes.main || location == '/';
@@ -120,84 +110,74 @@ class _MainSidebarState extends State<MainSidebar> {
   @override
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
-    final expanded = _expanded;
+    final t = expandT.clamp(0.0, 1.0);
+    final horizontalPad = 8 + 24 * t;
+    final radius = 32 * t;
+    final labelOpacity = ((t - 0.35) / 0.45).clamp(0.0, 1.0);
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: AnimatedContainer(
-        duration: _animDuration,
-        curve: Curves.easeOutCubic,
-        width: expanded ? _expandedWidth : _collapsedWidth,
-        decoration: BoxDecoration(
-          color: const Color(0xFF0C0C14),
-          borderRadius: expanded
-              ? const BorderRadius.only(
-                  topLeft: Radius.circular(32),
-                  bottomLeft: Radius.circular(32),
-                )
-              : BorderRadius.zero,
-        ),
-        clipBehavior: Clip.hardEdge,
+    return ClipRRect(
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(radius),
+        bottomLeft: Radius.circular(radius),
+      ),
+      child: ColoredBox(
+        color: const Color(0xFF0C0C14),
         child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: expanded ? 32 : 8,
-              vertical: 16,
-            ),
-            child: Column(
-              children: [
-                _SidebarLogo(expanded: expanded),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return SingleChildScrollView(
-                        physics: const ClampingScrollPhysics(),
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              for (var i = 0; i < _navItems.length; i++) ...[
-                                if (i > 0) const SizedBox(height: 16),
-                                _SidebarNavItem(
-                                  item: _navItems[i],
-                                  expanded: expanded,
-                                  selected: _isSelected(
-                                    location,
-                                    _navItems[i].route,
-                                  ),
-                                  onTap: () =>
-                                      _onItemTap(context, _navItems[i].route),
-                                ),
-                              ],
-                            ],
-                          ),
+          padding: EdgeInsets.fromLTRB(horizontalPad, 16, horizontalPad, 16),
+          child: Column(
+            children: [
+              _SidebarLogo(expandT: t),
+              const SizedBox(height: 10),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      physics: const ClampingScrollPhysics(),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
                         ),
-                      );
-                    },
-                  ),
-                ),
-                Column(
-                  children: [
-                    for (var i = 0; i < _bottomItems.length; i++) ...[
-                      if (i > 0) const SizedBox(height: 16),
-                      _SidebarNavItem(
-                        item: _bottomItems[i],
-                        expanded: expanded,
-                        selected: _isSelected(location, _bottomItems[i].route),
-                        onTap: () => _onItemTap(context, _bottomItems[i].route),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            for (var i = 0; i < _navItems.length; i++) ...[
+                              if (i > 0) const SizedBox(height: 16),
+                              _SidebarNavItem(
+                                item: _navItems[i],
+                                labelOpacity: labelOpacity,
+                                selected: _isSelected(
+                                  location,
+                                  _navItems[i].route,
+                                ),
+                                onTap: () =>
+                                    _onItemTap(context, _navItems[i].route),
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
-                    ],
-                  ],
+                    );
+                  },
                 ),
-                const SizedBox(height: 16),
-              ],
-            ),
+              ),
+              Column(
+                children: [
+                  for (var i = 0; i < _bottomItems.length; i++) ...[
+                    if (i > 0) const SizedBox(height: 16),
+                    _SidebarNavItem(
+                      item: _bottomItems[i],
+                      labelOpacity: labelOpacity,
+                      selected: _isSelected(location, _bottomItems[i].route),
+                      onTap: () => _onItemTap(context, _bottomItems[i].route),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
           ),
         ),
+      ),
     );
   }
 }
@@ -215,29 +195,40 @@ class _SidebarItem {
 }
 
 class _SidebarLogo extends StatelessWidget {
-  const _SidebarLogo({required this.expanded});
+  const _SidebarLogo({required this.expandT});
 
-  final bool expanded;
+  final double expandT;
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
-      alignment: Alignment.center,
-      child: expanded
-          ? SvgPicture.asset(
-              'assets/img/sidebar/logo_open.svg',
-              width: 202,
-              height: 54,
-              fit: BoxFit.contain,
-            )
-          : Image.asset(
+    final openOpacity = ((expandT - 0.4) / 0.4).clamp(0.0, 1.0);
+    final markOpacity = (1 - expandT / 0.45).clamp(0.0, 1.0);
+
+    return SizedBox(
+      height: 54,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Opacity(
+            opacity: markOpacity,
+            child: Image.asset(
               'assets/img/sidebar/logo_mark.png',
               width: 50,
               height: 50,
               fit: BoxFit.contain,
             ),
+          ),
+          Opacity(
+            opacity: openOpacity,
+            child: SvgPicture.asset(
+              'assets/img/sidebar/logo_open.svg',
+              width: 202,
+              height: 54,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -245,13 +236,13 @@ class _SidebarLogo extends StatelessWidget {
 class _SidebarNavItem extends StatelessWidget {
   const _SidebarNavItem({
     required this.item,
-    required this.expanded,
+    required this.labelOpacity,
     required this.selected,
     required this.onTap,
   });
 
   final _SidebarItem item;
-  final bool expanded;
+  final double labelOpacity;
   final bool selected;
   final VoidCallback onTap;
 
@@ -260,47 +251,46 @@ class _SidebarNavItem extends StatelessWidget {
     final color = selected ? blueColor : const Color(0xB3FFFFFF);
 
     return Material(
-        color: Colors.transparent,
-        child: InkWell(
-          canRequestFocus: false,
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          hoverColor: Colors.white.withValues(alpha: 0.06),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: SizedBox(
-              width: double.infinity,
-              height: 30,
-              child: expanded
-                  ? Row(
-                      children: [
-                        _SidebarIcon(asset: item.iconAsset, color: color),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            item.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.right,
-                            style: TextStyle(
-                              color: color,
-                              fontSize: 18,
-                              fontWeight:
-                                  selected ? FontWeight.w700 : FontWeight.w400,
-                              height: 1,
-                              letterSpacing: -0.18,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : Center(
-                      child: _SidebarIcon(asset: item.iconAsset, color: color),
+      color: Colors.transparent,
+      child: InkWell(
+        canRequestFocus: false,
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        hoverColor: Colors.white.withValues(alpha: 0.06),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: SizedBox(
+            height: 30,
+            child: Row(
+              children: [
+                _SidebarIcon(asset: item.iconAsset, color: color),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Opacity(
+                    opacity: labelOpacity,
+                    child: Text(
+                      item.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.clip,
+                      softWrap: false,
+                      textAlign: TextAlign.right,
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 18,
+                        fontWeight:
+                            selected ? FontWeight.w700 : FontWeight.w400,
+                        height: 1,
+                        letterSpacing: -0.18,
+                      ),
                     ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
-      );
+      ),
+    );
   }
 }
 

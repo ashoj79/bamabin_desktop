@@ -11,16 +11,24 @@ class DownloadItemTile extends StatelessWidget {
     required this.selected,
     required this.selectionMode,
     required this.onDelete,
-    required this.onAction,
     required this.onToggleSelect,
+    required this.onPause,
+    required this.onResume,
+    required this.onRetry,
+    required this.onPlay,
+    required this.onOpenFolder,
   });
 
   final DownloadTask task;
   final bool selected;
   final bool selectionMode;
   final VoidCallback onDelete;
-  final VoidCallback onAction;
   final VoidCallback onToggleSelect;
+  final VoidCallback onPause;
+  final VoidCallback onResume;
+  final VoidCallback onRetry;
+  final VoidCallback onPlay;
+  final VoidCallback onOpenFolder;
 
   static const _pausedBar = Color(0xFFFACC15);
   static const _errorBar = Color(0xFFEF4444);
@@ -66,19 +74,6 @@ class DownloadItemTile extends StatelessWidget {
     }
   }
 
-  String get _actionAsset {
-    switch (task.status) {
-      case DownloadTaskStatus.active:
-      case DownloadTaskStatus.queued:
-        return 'assets/img/ic_pause.svg';
-      case DownloadTaskStatus.completed:
-        return 'assets/img/hero_play_circle.svg';
-      case DownloadTaskStatus.paused:
-      case DownloadTaskStatus.error:
-        return 'assets/img/download.svg';
-    }
-  }
-
   double get _displayProgress {
     if (task.status == DownloadTaskStatus.completed ||
         task.status == DownloadTaskStatus.error) {
@@ -119,7 +114,7 @@ class DownloadItemTile extends StatelessWidget {
           child: Row(
             children: [
               // RTL: first = right → action button
-              _ActionButton(asset: _actionAsset, onTap: onAction),
+              _buildActions(),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -144,7 +139,11 @@ class DownloadItemTile extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        _DeleteChip(onTap: onDelete),
+                        Tooltip(
+                          message: 'حذف دانلود',
+                          waitDuration: const Duration(milliseconds: 400),
+                          child: _DeleteChip(onTap: onDelete),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -209,6 +208,43 @@ class DownloadItemTile extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildActions() {
+    if (task.status == DownloadTaskStatus.completed) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ActionButton(
+            asset: 'assets/img/download/ic_play_circle_duotone.svg',
+            tooltip: 'پخش در پلیر برنامه',
+            onTap: onPlay,
+          ),
+          const SizedBox(width: 8),
+          _ActionButton(
+            asset: 'assets/img/download/ic_folder_duotone.svg',
+            tooltip: 'باز کردن در فایل‌های سیستم',
+            onTap: onOpenFolder,
+          ),
+        ],
+      );
+    }
+
+    final isActive = task.status == DownloadTaskStatus.active ||
+        task.status == DownloadTaskStatus.queued;
+    return _ActionButton(
+      asset: isActive
+          ? 'assets/img/download/ic_pause_duotone.svg'
+          : 'assets/img/download/ic_download_duotone.svg',
+      tooltip: isActive
+          ? 'توقف دانلود'
+          : (task.status == DownloadTaskStatus.error
+                ? 'تلاش مجدد'
+                : 'ادامه دانلود'),
+      onTap: isActive
+          ? onPause
+          : (task.status == DownloadTaskStatus.error ? onRetry : onResume),
     );
   }
 
@@ -559,30 +595,35 @@ class _DeleteChip extends StatelessWidget {
 }
 
 class _ActionButton extends StatelessWidget {
-  const _ActionButton({required this.asset, required this.onTap});
+  const _ActionButton({
+    required this.asset,
+    required this.onTap,
+    required this.tooltip,
+  });
 
   final String asset;
   final VoidCallback onTap;
+  final String tooltip;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white.withValues(alpha: 0.06),
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
+    return Tooltip(
+      message: tooltip,
+      waitDuration: const Duration(milliseconds: 400),
+      child: Material(
+        color: Colors.white.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
-        child: SizedBox(
-          width: 44,
-          height: 44,
-          child: Center(
-            child: SvgPicture.asset(
-              asset,
-              width: 22,
-              height: 22,
-              colorFilter: const ColorFilter.mode(
-                Colors.white,
-                BlendMode.srcIn,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: SizedBox(
+            width: 44,
+            height: 44,
+            child: Center(
+              child: SvgPicture.asset(
+                asset,
+                width: 22,
+                height: 22,
               ),
             ),
           ),

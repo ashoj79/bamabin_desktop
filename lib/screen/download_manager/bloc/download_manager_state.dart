@@ -8,6 +8,7 @@ class DownloadManagerState {
     this.selectionMode = false,
     this.selectedIds = const {},
     this.initialized = false,
+    this.enqueueTick = 0,
   });
 
   final List<DownloadTask> tasks;
@@ -15,6 +16,7 @@ class DownloadManagerState {
   final bool selectionMode;
   final Set<String> selectedIds;
   final bool initialized;
+  final int enqueueTick;
 
   int get allCount => tasks.length;
 
@@ -54,6 +56,7 @@ class DownloadManagerState {
     bool? selectionMode,
     Set<String>? selectedIds,
     bool? initialized,
+    int? enqueueTick,
   }) {
     return DownloadManagerState(
       tasks: tasks ?? this.tasks,
@@ -61,6 +64,7 @@ class DownloadManagerState {
       selectionMode: selectionMode ?? this.selectionMode,
       selectedIds: selectedIds ?? this.selectedIds,
       initialized: initialized ?? this.initialized,
+      enqueueTick: enqueueTick ?? this.enqueueTick,
     );
   }
 }

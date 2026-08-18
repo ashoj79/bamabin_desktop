@@ -95,6 +95,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/img/
+    - assets/img/download/
     - assets/img/player/
     - assets/img/sidebar/
     - assets/img/subscription/

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bamabin_desktop/config/color.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/post_details.dart';
 import 'package:bamabin_desktop/screen/download_manager/bloc/download_manager_bloc.dart';
@@ -55,7 +57,7 @@ class PostDownloadOverlay extends StatefulWidget {
 }
 
 class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
-  int? _expandedSeasonIndex = 0;
+  int? _expandedSeasonIndex;
   final Map<String, int?> _expandedTypeByKey = {};
 
   int _seasonIndex = 0;
@@ -66,13 +68,7 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
   @override
   void initState() {
     super.initState();
-    if (widget.isSeries) {
-      if (widget.seasons.isNotEmpty) {
-        _expandedTypeByKey['s0'] = _firstAvailableSeriesTypeIndex(
-          widget.seasons.first.items,
-        );
-      }
-    } else {
+    if (!widget.isSeries) {
       _expandedTypeByKey['movie'] = _firstAvailableMovieTypeIndex(
         widget.movieDownloadBox,
       );
@@ -315,10 +311,6 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
         sizeLabel: info.size,
       ),
     );
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('به صف دانلود اضافه شد')),
-    );
   }
 
   Future<void> _copyLink(String link) async {
@@ -340,6 +332,120 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('همه لینک‌ها کپی شدند')),
     );
+  }
+
+  List<QualityInfo> _allQualitiesForType(SeriesDownloadBox box, MovieType type) {
+    for (final section in _seriesTypeEntries(box)) {
+      if (section.type != type) continue;
+      final list = [
+        for (final item in section.items)
+          if (_matchesQuality(item.mainQuality, item.quality)) item,
+      ]..sort((a, b) {
+          return _qualityRank(
+            _qualityLabel(b.mainQuality, b.quality),
+          ).compareTo(
+            _qualityRank(_qualityLabel(a.mainQuality, a.quality)),
+          );
+        });
+      return list;
+    }
+    return const [];
+  }
+
+  MovieInfo _enrichEpisode(MovieInfo episode, QualityInfo quality) {
+    return MovieInfo(
+      name: episode.name,
+      link: episode.link,
+      quality: episode.quality.isNotEmpty ? episode.quality : quality.quality,
+      mainQuality:
+          episode.mainQuality.isNotEmpty ? episode.mainQuality : quality.mainQuality,
+      qualityCode: episode.qualityCode.isNotEmpty
+          ? episode.qualityCode
+          : quality.qualityCode,
+      subtitleTypes: episode.subtitleTypes.isNotEmpty
+          ? episode.subtitleTypes
+          : quality.subtitleTypes,
+      encoder: episode.encoder.isNotEmpty ? episode.encoder : quality.encoders,
+      size: episode.size.isNotEmpty ? episode.size : quality.size,
+    );
+  }
+
+  String _qualityPickLabel(QualityInfo quality, MovieInfo episode) {
+    final label = _qualityLabel(quality.mainQuality, quality.quality);
+    final encoder = episode.encoder.isNotEmpty
+        ? episode.encoder
+        : quality.encoders;
+    final size = episode.size.isNotEmpty ? episode.size : quality.size;
+    final parts = <String>['کیفیت $label'];
+    if (encoder.isNotEmpty) parts.add(encoder);
+    if (size.isNotEmpty) parts.add(size);
+    return parts.join(' · ');
+  }
+
+  Future<MovieInfo?> _pickEpisodeQuality({
+    required List<QualityInfo> qualities,
+    required int episodeNumber,
+    required MovieInfo fallbackEpisode,
+    required QualityInfo displayQuality,
+  }) async {
+    if (_selectedQuality != null) {
+      return _enrichEpisode(fallbackEpisode, displayQuality);
+    }
+
+    final index = episodeNumber - 1;
+    final choices = <_MenuChoice<MovieInfo>>[];
+    for (final quality in qualities) {
+      if (index < 0 || index >= quality.episodes.length) continue;
+      final episode = quality.episodes[index];
+      choices.add(
+        _MenuChoice(
+          value: _enrichEpisode(episode, quality),
+          label: _qualityPickLabel(quality, episode),
+        ),
+      );
+    }
+
+    if (choices.isEmpty) return null;
+    if (choices.length == 1) return choices.first.value;
+
+    return _showDarkMenu<MovieInfo>(items: choices);
+  }
+
+  Future<void> _onEpisodeDownload({
+    required List<QualityInfo> qualities,
+    required MovieInfo episode,
+    required int episodeNumber,
+    required QualityInfo displayQuality,
+    required String seasonName,
+  }) async {
+    final picked = await _pickEpisodeQuality(
+      qualities: qualities,
+      episodeNumber: episodeNumber,
+      fallbackEpisode: episode,
+      displayQuality: displayQuality,
+    );
+    if (picked == null || !mounted) return;
+    await _enqueueDownload(
+      picked,
+      seasonName: seasonName,
+      episodeNumber: episodeNumber,
+    );
+  }
+
+  Future<void> _onEpisodeCopy({
+    required List<QualityInfo> qualities,
+    required MovieInfo episode,
+    required int episodeNumber,
+    required QualityInfo displayQuality,
+  }) async {
+    final picked = await _pickEpisodeQuality(
+      qualities: qualities,
+      episodeNumber: episodeNumber,
+      fallbackEpisode: episode,
+      displayQuality: displayQuality,
+    );
+    if (picked == null || !mounted) return;
+    await _copyLink(picked.link);
   }
 
   Future<void> _onDownloadOptionSelected(
@@ -674,29 +780,28 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
                   _SeriesQualityItem(
                     quality: sections[i].items[q],
                     onDownloadEpisode: (episode, episodeNumber) {
-                      final enriched = MovieInfo(
-                        name: episode.name,
-                        link: episode.link,
-                        quality: episode.quality.isNotEmpty
-                            ? episode.quality
-                            : sections[i].items[q].quality,
-                        mainQuality: episode.mainQuality,
-                        qualityCode: episode.qualityCode,
-                        subtitleTypes: episode.subtitleTypes,
-                        encoder: episode.encoder.isNotEmpty
-                            ? episode.encoder
-                            : sections[i].items[q].encoders,
-                        size: episode.size.isNotEmpty
-                            ? episode.size
-                            : sections[i].items[q].size,
-                      );
-                      _enqueueDownload(
-                        enriched,
-                        seasonName: seasonName,
-                        episodeNumber: episodeNumber,
+                      unawaited(
+                        _onEpisodeDownload(
+                          qualities: _allQualitiesForType(box, sections[i].type),
+                          episode: episode,
+                          episodeNumber: episodeNumber,
+                          displayQuality: sections[i].items[q],
+                          seasonName: seasonName,
+                        ),
                       );
                     },
-                    onCopyEpisode: (episode) => _copyLink(episode.link),
+                    onCopyEpisode: (episode) {
+                      final episodeNumber =
+                          sections[i].items[q].episodes.indexOf(episode) + 1;
+                      unawaited(
+                        _onEpisodeCopy(
+                          qualities: _allQualitiesForType(box, sections[i].type),
+                          episode: episode,
+                          episodeNumber: episodeNumber,
+                          displayQuality: sections[i].items[q],
+                        ),
+                      );
+                    },
                     onCopyAll: (quality) {
                       _copyAllLinks(
                         quality.episodes.map((e) => e.link).toList(),
@@ -1200,7 +1305,7 @@ class _ChevronButton extends StatelessWidget {
           child: Icon(
             expanded
                 ? Icons.keyboard_arrow_up_rounded
-                : Icons.chevron_left_rounded,
+                : Icons.chevron_right_rounded,
             color: Colors.white.withValues(alpha: 0.85),
           ),
         ),
@@ -1382,33 +1487,40 @@ class _EpisodeDownloadButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: Colors.white.withValues(alpha: 0.48)),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.85),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onDownload,
+        borderRadius: BorderRadius.circular(16),
+        hoverColor: Colors.white.withValues(alpha: 0.06),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white.withValues(alpha: 0.85),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 4),
-            _EpisodeIconButton(
-              asset: 'assets/img/hero_download.svg',
-              onTap: onDownload,
-            ),
-            const SizedBox(width: 4),
-            _EpisodeIconButton(
-              asset: 'assets/img/copy.svg',
-              onTap: onCopy,
-            ),
-          ],
+              const SizedBox(width: 4),
+              SvgPicture.asset(
+                'assets/img/hero_download.svg',
+                width: 20,
+                height: 20,
+              ),
+              const SizedBox(width: 4),
+              _EpisodeIconButton(
+                asset: 'assets/img/copy.svg',
+                onTap: onCopy,
+              ),
+            ],
+          ),
         ),
       ),
     );

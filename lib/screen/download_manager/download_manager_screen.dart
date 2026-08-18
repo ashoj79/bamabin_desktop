@@ -1,7 +1,7 @@
-import 'package:bamabin_desktop/data/local/model/download_task.dart';
 import 'package:bamabin_desktop/screen/download_manager/bloc/download_manager_bloc.dart';
 import 'package:bamabin_desktop/screen/download_manager/bloc/download_manager_event.dart';
 import 'package:bamabin_desktop/screen/download_manager/bloc/download_manager_state.dart';
+import 'package:bamabin_desktop/screen/download_manager/download_local_player.dart';
 import 'package:bamabin_desktop/screen/download_manager/widgets/download_bulk_actions.dart';
 import 'package:bamabin_desktop/screen/download_manager/widgets/download_filter_bar.dart';
 import 'package:bamabin_desktop/screen/download_manager/widgets/download_item_tile.dart';
@@ -23,21 +23,6 @@ class _DownloadManagerBody extends StatelessWidget {
   const _DownloadManagerBody();
 
   static const _bg = Color(0xFF0C0C14);
-
-  void _onItemAction(BuildContext context, DownloadTask task) {
-    final bloc = context.read<DownloadManagerBloc>();
-    switch (task.status) {
-      case DownloadTaskStatus.active:
-      case DownloadTaskStatus.queued:
-        bloc.add(DownloadPaused(task.id));
-      case DownloadTaskStatus.paused:
-        bloc.add(DownloadResumed(task.id));
-      case DownloadTaskStatus.error:
-        bloc.add(DownloadRetried(task.id));
-      case DownloadTaskStatus.completed:
-        bloc.add(DownloadOpenCompleted(task.id));
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,8 +105,20 @@ class _DownloadManagerBody extends StatelessWidget {
                                   onDelete: () => context
                                       .read<DownloadManagerBloc>()
                                       .add(DownloadDeleted(task.id)),
-                                  onAction: () =>
-                                      _onItemAction(context, task),
+                                  onPause: () => context
+                                      .read<DownloadManagerBloc>()
+                                      .add(DownloadPaused(task.id)),
+                                  onResume: () => context
+                                      .read<DownloadManagerBloc>()
+                                      .add(DownloadResumed(task.id)),
+                                  onRetry: () => context
+                                      .read<DownloadManagerBloc>()
+                                      .add(DownloadRetried(task.id)),
+                                  onPlay: () =>
+                                      playDownloadedTask(context, task),
+                                  onOpenFolder: () => context
+                                      .read<DownloadManagerBloc>()
+                                      .add(DownloadOpenCompleted(task.id)),
                                   onToggleSelect: () => context
                                       .read<DownloadManagerBloc>()
                                       .add(

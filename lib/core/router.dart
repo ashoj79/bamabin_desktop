@@ -188,6 +188,20 @@ final GoRouter router = GoRouter(
             child: const Top250Screen(type: Top250Type.series),
           ),
         ),
+        GoRoute(
+          path: Routes.postDetails,
+          builder: (context, state) {
+            final extra = state.extra;
+            if (extra is! Post) {
+              return const MainPlaceholderPage(title: 'جزئیات');
+            }
+            return BlocProvider(
+              create: (_) =>
+                  locator<PostDetailsBloc>()..add(LoadPostDetailsEvent(extra)),
+              child: const PostDetailsScreen(),
+            );
+          },
+        ),
       ],
     ),
     GoRoute(
@@ -196,20 +210,6 @@ final GoRouter router = GoRouter(
         create: (_) => locator<AuthBloc>(),
         child: const AuthScreen(),
       ),
-    ),
-    GoRoute(
-      path: Routes.postDetails,
-      builder: (context, state) {
-        final extra = state.extra;
-        if (extra is! Post) {
-          return const MainPlaceholderPage(title: 'جزئیات');
-        }
-        return BlocProvider(
-          create: (_) =>
-              locator<PostDetailsBloc>()..add(LoadPostDetailsEvent(extra)),
-          child: const PostDetailsScreen(),
-        );
-      },
     ),
     GoRoute(
       path: Routes.player,

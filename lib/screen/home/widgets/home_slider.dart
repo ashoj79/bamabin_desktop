@@ -64,7 +64,7 @@ class _HomeSliderState extends State<HomeSlider> {
                 children: [
                   _SliderArrowButton(
                     asset: 'assets/img/slider_arrow_left.svg',
-                    onTap: () => _carouselController.previousPage(
+                    onTap: () => _carouselController.nextPage(
                       duration: const Duration(milliseconds: 400),
                       curve: Curves.easeInOut,
                     ),
@@ -72,7 +72,7 @@ class _HomeSliderState extends State<HomeSlider> {
                   const SizedBox(width: 8),
                   _SliderArrowButton(
                     asset: 'assets/img/slider_arrow_right.svg',
-                    onTap: () => _carouselController.nextPage(
+                    onTap: () => _carouselController.previousPage(
                       duration: const Duration(milliseconds: 400),
                       curve: Curves.easeInOut,
                     ),
@@ -157,49 +157,60 @@ class _HomeSliderItem extends StatelessWidget {
   }
 
   List<Widget> _metaChildren() {
-    final children = <Widget>[];
+    final segments = <Widget>[];
+    var needsSeparator = false;
 
-    void addDot() {
-      if (children.isEmpty) return;
-      children.add(
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(
-            '·',
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.white.withValues(alpha: 0.48),
+    void addSegment(Widget child) {
+      segments.add(
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (needsSeparator) ...[
+              Text(
+                '·',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.white.withValues(alpha: 0.48),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+            child,
+          ],
+        ),
+      );
+      needsSeparator = true;
+    }
+
+    if (post.imdbRate.isNotEmpty) {
+      addSegment(
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.star_rounded, size: 13, color: yellowColor),
+            const SizedBox(width: 5),
+            Text(
+              post.imdbRate,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
             ),
-          ),
+            Text(
+              ' /10',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.white.withValues(alpha: 0.33),
+              ),
+            ),
+          ],
         ),
       );
     }
 
-    if (post.imdbRate.isNotEmpty) {
-      children.addAll([
-        Icon(Icons.star_rounded, size: 13, color: yellowColor),
-        const SizedBox(width: 5),
-        Text(
-          post.imdbRate,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
-        Text(
-          ' /10',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.white.withValues(alpha: 0.33),
-          ),
-        ),
-      ]);
-    }
-
     if (post.releaseYear != '0') {
-      addDot();
-      children.add(
+      addSegment(
         Text(
           post.releaseYear,
           style: TextStyle(
@@ -211,8 +222,7 @@ class _HomeSliderItem extends StatelessWidget {
     }
 
     if (sliderPost.time.isNotEmpty) {
-      addDot();
-      children.add(
+      addSegment(
         Text(
           sliderPost.time,
           style: TextStyle(
@@ -223,213 +233,391 @@ class _HomeSliderItem extends StatelessWidget {
       );
     }
 
-    addDot();
-    children.add(_metaTag('زیرنویس فارسی'));
+    addSegment(_metaTag('زیرنویس فارسی'));
 
     if (post.hasAudio) {
-      addDot();
-      children.add(_metaTag('دوبله فارسی'));
+      addSegment(_metaTag('دوبله فارسی'));
     }
 
-    return children;
+    return segments;
   }
 
   @override
   Widget build(BuildContext context) {
     final meta = _metaChildren();
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        CachedNetworkImage(
-          imageUrl: post.bgThumbnail.isNotEmpty
-              ? post.bgThumbnail
-              : post.thumbnail,
-          fit: BoxFit.cover,
-          width: double.infinity,
-          height: double.infinity,
-          errorWidget: (context, url, error) => ColoredBox(color: desktopBgColor),
-        ),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [
-                Colors.transparent,
-                const Color(0xB30B0B0D),
-                desktopBgColor,
-              ],
-              stops: const [0.2, 0.55, 0.8],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final sliderWidth = constraints.maxWidth;
+        final panelWidth = sliderWidth * 0.55;
+
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            CachedNetworkImage(
+              imageUrl: post.bgThumbnail.isNotEmpty
+                  ? post.bgThumbnail
+                  : post.thumbnail,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+              errorWidget: (context, url, error) =>
+                  ColoredBox(color: desktopBgColor),
             ),
-          ),
-        ),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Colors.transparent, desktopBgColor],
-              stops: const [0.63, 1],
-            ),
-          ),
-        ),
-        Positioned(
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: MediaQuery.sizeOf(context).width * 0.55,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(44, 60, 64, 52),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (_genreNames.isNotEmpty)
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: _genreNames
-                        .map(
-                          (g) => Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.06),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.14),
-                              ),
-                            ),
-                            child: Text(
-                              g,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.white.withValues(alpha: 0.67),
-                              ),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                if (_genreNames.isNotEmpty) const SizedBox(height: 10),
-                Text(
-                  _englishTitle,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 38,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    height: 1.2,
-                    shadows: [
-                      Shadow(
-                        color: Color(0x80000000),
-                        blurRadius: 24,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                ),
-                if (_persianTitle.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    _persianTitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white.withValues(alpha: 0.48),
-                    ),
-                  ),
-                ],
-                if (meta.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  Directionality(
-                    textDirection: TextDirection.ltr,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: meta,
-                    ),
-                  ),
-                ],
-                if (sliderPost.summary.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 500),
-                    child: Text(
-                      sliderPost.summary,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.justify,
-                      style: TextStyle(
-                        fontSize: 16,
-                        height: 22 / 16,
-                        color: Colors.white.withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                //     ElevatedButton.icon(
-                //       onPressed: () =>
-                //           context.push(Routes.postDetails, extra: post),
-                //       style: ElevatedButton.styleFrom(
-                //         backgroundColor: blueColor,
-                //         foregroundColor: Colors.white,
-                //         elevation: 0,
-                //         padding: const EdgeInsets.symmetric(
-                //           horizontal: 28,
-                //           vertical: 18,
-                //         ),
-                //         shape: RoundedRectangleBorder(
-                //           borderRadius: BorderRadius.circular(8),
-                //         ),
-                //         textStyle: const TextStyle(
-                //           fontFamily: 'dana',
-                //           fontSize: 15,
-                //           fontWeight: FontWeight.w600,
-                //         ),
-                //       ),
-                //       icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                //       label: const Text('تماشا'),
-                //     ),
-                //     const SizedBox(width: 10),
-                    OutlinedButton(
-                      onPressed: () =>
-                          context.push(Routes.postDetails, extra: post),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white.withValues(alpha: 0.8),
-                        side: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.12),
-                        ),
-                        backgroundColor: Colors.white.withValues(alpha: 0.07),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 22,
-                          vertical: 18,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        textStyle: const TextStyle(
-                          fontFamily: 'dana',
-                          fontSize: 14,
-                        ),
-                      ),
-                      child: const Text('اطلاعات بیشتر'),
-                    ),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Colors.transparent,
+                    const Color(0xB30B0B0D),
+                    desktopBgColor,
                   ],
+                  stops: const [0.2, 0.55, 0.8],
                 ),
-              ],
+              ),
+            ),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, desktopBgColor],
+                  stops: const [0.63, 1],
+                ),
+              ),
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              bottom: 0,
+              width: panelWidth.clamp(0.0, sliderWidth),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  44,
+                  60,
+                  64,
+                  52,
+                ),
+                child: LayoutBuilder(
+                  builder: (context, panelConstraints) {
+                    return _SliderHeroPanel(
+                      availableWidth: panelConstraints.maxWidth,
+                      availableHeight: panelConstraints.maxHeight,
+                      posterUrl: post.thumbnail,
+                      genreNames: _genreNames,
+                      englishTitle: _englishTitle,
+                      persianTitle: _persianTitle,
+                      meta: meta,
+                      summary: sliderPost.summary,
+                      post: post,
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SliderHeroPanel extends StatelessWidget {
+  const _SliderHeroPanel({
+    required this.availableWidth,
+    required this.availableHeight,
+    required this.posterUrl,
+    required this.genreNames,
+    required this.englishTitle,
+    required this.persianTitle,
+    required this.meta,
+    required this.summary,
+    required this.post,
+  });
+
+  static const _maxPosterWidth = 308.0;
+  static const _maxPosterHeight = 469.0;
+  static const _posterAspect = _maxPosterWidth / _maxPosterHeight;
+  static const _gap = 20.0;
+  static const _minTextWidth = 200.0;
+  static const _stackBreakpoint = 520.0;
+
+  final double availableWidth;
+  final double availableHeight;
+  final String posterUrl;
+  final List<String> genreNames;
+  final String englishTitle;
+  final String persianTitle;
+  final List<Widget> meta;
+  final String summary;
+  final Post post;
+
+  ({double width, double height}) _posterSize({required bool stacked}) {
+    if (stacked) {
+      final width = (availableWidth * 0.42).clamp(120.0, _maxPosterWidth);
+      return (width: width, height: width / _posterAspect);
+    }
+
+    var width = (availableWidth - _gap - _minTextWidth)
+        .clamp(120.0, _maxPosterWidth);
+    var height = width / _posterAspect;
+    final maxHeight = availableHeight * 0.92;
+    if (height > maxHeight) {
+      height = maxHeight;
+      width = height * _posterAspect;
+    }
+    return (width: width, height: height);
+  }
+
+  bool get _showPoster {
+    final stacked = availableWidth < _stackBreakpoint;
+    final size = _posterSize(stacked: stacked);
+    return size.width >= 120;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final stacked = availableWidth < _stackBreakpoint;
+    final posterSize = _posterSize(stacked: stacked);
+    final info = _SliderInfoSection(
+      genreNames: genreNames,
+      englishTitle: englishTitle,
+      persianTitle: persianTitle,
+      meta: meta,
+      summary: summary,
+      post: post,
+      titleScale: stacked ? 0.82 : 1,
+    );
+
+    if (stacked) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          info,
+          if (_showPoster) ...[
+            const SizedBox(height: 16),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: _SliderPoster(
+                url: posterUrl,
+                width: posterSize.width,
+                height: posterSize.height,
+              ),
+            ),
+          ],
+        ],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        if (_showPoster)
+          _SliderPoster(
+            url: posterUrl,
+            width: posterSize.width,
+            height: posterSize.height,
+          ),
+        if (_showPoster) const SizedBox(width: _gap),
+        Expanded(child: info),
+      ],
+    );
+  }
+}
+
+class _SliderInfoSection extends StatelessWidget {
+  const _SliderInfoSection({
+    required this.genreNames,
+    required this.englishTitle,
+    required this.persianTitle,
+    required this.meta,
+    required this.summary,
+    required this.post,
+    this.titleScale = 1,
+  });
+
+  final List<String> genreNames;
+  final String englishTitle;
+  final String persianTitle;
+  final List<Widget> meta;
+  final String summary;
+  final Post post;
+  final double titleScale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (genreNames.isNotEmpty)
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: genreNames
+                .map(
+                  (g) => Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.14),
+                      ),
+                    ),
+                    child: Text(
+                      g,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white.withValues(alpha: 0.67),
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+        if (genreNames.isNotEmpty) const SizedBox(height: 10),
+        Text(
+          englishTitle,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 38 * titleScale,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            height: 1.2,
+            shadows: const [
+              Shadow(
+                color: Color(0x80000000),
+                blurRadius: 24,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+        ),
+        if (persianTitle.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(
+            persianTitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 20 * titleScale,
+              fontWeight: FontWeight.w500,
+              color: Colors.white.withValues(alpha: 0.48),
             ),
           ),
+        ],
+        if (meta.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: Wrap(
+              alignment: WrapAlignment.end,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 4,
+              runSpacing: 6,
+              children: meta,
+            ),
+          ),
+        ],
+        if (summary.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          Text(
+            summary,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.justify,
+            style: TextStyle(
+              fontSize: 16,
+              height: 22 / 16,
+              color: Colors.white.withValues(alpha: 0.7),
+            ),
+          ),
+        ],
+        const SizedBox(height: 16),
+        OutlinedButton(
+          onPressed: () => context.push(Routes.postDetails, extra: post),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.white.withValues(alpha: 0.8),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+            backgroundColor: Colors.white.withValues(alpha: 0.07),
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            textStyle: const TextStyle(
+              fontFamily: 'dana',
+              fontSize: 14,
+            ),
+          ),
+          child: const Text('اطلاعات بیشتر'),
         ),
       ],
+    );
+  }
+}
+
+class _SliderPoster extends StatelessWidget {
+  const _SliderPoster({
+    required this.url,
+    required this.width,
+    required this.height,
+  });
+
+  final String url;
+  final double width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = (32 * (width / 308)).clamp(16.0, 32.0);
+
+    return SizedBox(
+      width: width,
+      height: height,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(radius),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(radius - 0.5),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              ColoredBox(color: desktopBgColor),
+              if (url.isNotEmpty)
+                CachedNetworkImage(
+                  imageUrl: url,
+                  fit: BoxFit.cover,
+                  errorWidget: (_, _, _) => const SizedBox.shrink(),
+                ),
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0xB30D0D0D),
+                      Color(0x001A1A1A),
+                      Color(0xB3000000),
+                    ],
+                    stops: [0, 0.46, 1],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

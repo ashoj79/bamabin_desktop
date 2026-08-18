@@ -9,6 +9,10 @@ import 'package:bamabin_desktop/data/remote/model/videos/post_details.dart';
 import 'package:bamabin_desktop/screen/post_details/bloc/post_details_bloc.dart';
 import 'package:bamabin_desktop/screen/post_details/widgets/post_details_comments.dart';
 import 'package:bamabin_desktop/screen/post_details/widgets/post_details_hero.dart';
+import 'package:bamabin_desktop/screen/post_details/widgets/post_downloads_tray.dart';
+import 'package:bamabin_desktop/screen/download_manager/bloc/download_manager_bloc.dart';
+import 'package:bamabin_desktop/screen/download_manager/bloc/download_manager_state.dart';
+import 'package:bamabin_desktop/utils/di.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +30,7 @@ class PostDetailsScreen extends StatefulWidget {
 
 class _PostDetailsScreenState extends State<PostDetailsScreen> {
   final _commentController = TextEditingController();
+  var _showDownloadsTray = false;
 
   @override
   void dispose() {
@@ -35,37 +40,62 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-        color: desktopBgColor,
-        child: BlocConsumer<PostDetailsBloc, PostDetailsState>(
-        listenWhen: (previous, current) {
-          if (current is! PostDetailsViewState) return false;
-          if (previous is! PostDetailsViewState) {
-            return current.likeError != null || current.watchlistError != null;
-          }
-          return (current.likeError != null &&
-                  current.likeError != previous.likeError) ||
-              (current.watchlistError != null &&
-                  current.watchlistError != previous.watchlistError);
-        },
+    return BlocProvider.value(
+      value: locator<DownloadManagerBloc>(),
+      child: BlocListener<DownloadManagerBloc, DownloadManagerState>(
+        listenWhen: (previous, current) =>
+            current.enqueueTick > previous.enqueueTick,
         listener: (context, state) {
-          if (state is! PostDetailsViewState) return;
-          final message = state.likeError ?? state.watchlistError;
-          if (message != null) {
-            showBamabinSnackbar(context, message);
-          }
+          setState(() => _showDownloadsTray = true);
         },
-        builder: (context, state) {
-          if (state is! PostDetailsViewState) {
-            return const Center(
-              child: CircularProgressIndicator(color: Color(0xFF29B6F6)),
-            );
-          }
-          return _PostDetailsBody(
-            state: state,
-            commentController: _commentController,
-          );
-        },
+        child: ColoredBox(
+          color: desktopBgColor,
+          child: Stack(
+            children: [
+              BlocConsumer<PostDetailsBloc, PostDetailsState>(
+                listenWhen: (previous, current) {
+                  if (current is! PostDetailsViewState) return false;
+                  if (previous is! PostDetailsViewState) {
+                    return current.likeError != null ||
+                        current.watchlistError != null;
+                  }
+                  return (current.likeError != null &&
+                          current.likeError != previous.likeError) ||
+                      (current.watchlistError != null &&
+                          current.watchlistError != previous.watchlistError);
+                },
+                listener: (context, state) {
+                  if (state is! PostDetailsViewState) return;
+                  final message = state.likeError ?? state.watchlistError;
+                  if (message != null) {
+                    showBamabinSnackbar(context, message);
+                  }
+                },
+                builder: (context, state) {
+                  if (state is! PostDetailsViewState) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF29B6F6),
+                      ),
+                    );
+                  }
+                  return _PostDetailsBody(
+                    state: state,
+                    commentController: _commentController,
+                  );
+                },
+              ),
+              if (_showDownloadsTray)
+                Positioned(
+                  left: 24,
+                  bottom: 24,
+                  child: PostDownloadsTray(
+                    onClose: () => setState(() => _showDownloadsTray = false),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
