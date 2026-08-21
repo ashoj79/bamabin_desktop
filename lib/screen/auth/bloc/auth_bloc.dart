@@ -105,7 +105,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
 
     emit(AuthLoading());
-    final result = await _userRepository.loginWithApiKey(token);
+    final result = await _userRepository.loginWithToken(token);
     if (result is DataSuccess) {
       emit(AuthSuccess());
       return;

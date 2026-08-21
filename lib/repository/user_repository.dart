@@ -125,16 +125,6 @@ class UserRepository {
     return DataSuccess(response.data);
   }
 
-  Future<DataState<void>> loginWithApiKey(String apiKey) async {
-    TempDb.apiKey = apiKey;
-    if (!(await _getUserData())) {
-      return DataError('خطایی رخ داده است');
-    }
-    await _sharedPreferenceHelper.setApiKey(apiKey);
-    TempDb.isLoggedIn.value = true;
-    return DataSuccess();
-  }
-
   Future<DataState<AuthResponse>> loginWithGoogle(String token) async {
     Map<String, String> deviceInfo = await _getDeviceInfo();
     final response = await _userApiService.loginWithGoogle(

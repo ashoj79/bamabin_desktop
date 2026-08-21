@@ -105,7 +105,7 @@ class _AuthScreenState extends State<AuthScreen> {
   String _randomToken() {
     final random = Random.secure();
     return List.generate(
-      5,
+      6,
       (_) => _tokenChars[random.nextInt(_tokenChars.length)],
     ).join();
   }
@@ -144,7 +144,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
     socket.on('api_key', (data) {
       final payload = _payload(data);
-      final apiKey = payload is Map ? payload['api_key']?.toString() : null;
+      final apiKey = payload is Map ? payload['easy_login_token']?.toString() : null;
       if (apiKey == null || apiKey.isEmpty || !mounted) return;
       _socketApiKey = apiKey;
       _isUsingGoogle = false;
