@@ -65,16 +65,6 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
   bool _filterSubtitle = false;
   bool _filterDubbed = false;
 
-  @override
-  void initState() {
-    super.initState();
-    if (!widget.isSeries) {
-      _expandedTypeByKey['movie'] = _firstAvailableMovieTypeIndex(
-        widget.movieDownloadBox,
-      );
-    }
-  }
-
   List<String> get _seasonOptions {
     return [
       'همه لینک ها',
@@ -151,17 +141,6 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
   bool _matchesQuality(String mainQuality, String quality) {
     if (_selectedQuality == null) return true;
     return _qualityLabel(mainQuality, quality) == _selectedQuality;
-  }
-
-  static int? _firstAvailableMovieTypeIndex(MovieDownloadBox? box) {
-    if (box == null) return null;
-    final types = _movieTypeEntries(box);
-    return types.isEmpty ? null : 0;
-  }
-
-  static int? _firstAvailableSeriesTypeIndex(SeriesDownloadBox box) {
-    final types = _seriesTypeEntries(box);
-    return types.isEmpty ? null : 0;
   }
 
   static List<_TypeSection<MovieInfo>> _movieTypeEntries(MovieDownloadBox box) {
@@ -472,14 +451,7 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
     setState(() {
       _seasonIndex = index;
       if (index > 0) {
-        final seasonIndex = index - 1;
-        _expandedSeasonIndex = seasonIndex;
-        _expandedTypeByKey.putIfAbsent(
-          's$seasonIndex',
-          () => _firstAvailableSeriesTypeIndex(
-            widget.seasons[seasonIndex].items,
-          ),
-        );
+        _expandedSeasonIndex = index - 1;
       }
     });
   }
@@ -716,17 +688,8 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
                 expanded: _expandedSeasonIndex == s,
                 onToggle: () {
                   setState(() {
-                    if (_expandedSeasonIndex == s) {
-                      _expandedSeasonIndex = null;
-                    } else {
-                      _expandedSeasonIndex = s;
-                      _expandedTypeByKey.putIfAbsent(
-                        's$s',
-                        () => _firstAvailableSeriesTypeIndex(
-                          widget.seasons[s].items,
-                        ),
-                      );
-                    }
+                    _expandedSeasonIndex =
+                        _expandedSeasonIndex == s ? null : s;
                   });
                 },
                 child: _buildSeasonTypes(

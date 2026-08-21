@@ -69,6 +69,7 @@ dependencies:
   path_provider: ^2.1.5
   path: ^1.9.1
   window_manager: ^0.5.2
+  local_notifier: ^0.1.6
 
 dev_dependencies:
   flutter_test:

@@ -222,7 +222,8 @@ class _PlayerSubtitleLayerState extends State<_PlayerSubtitleLayer> {
         return Material(
           color: Colors.transparent,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 100),
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
             padding: widget.padding,
             alignment: Alignment.bottomCenter,
             child: StrokeText(
@@ -254,6 +255,8 @@ class PlayerScreen extends StatefulWidget {
   static const _volumeFill = Color(0xBFFFFFFF); // white 75%
   static const _badgeBg = Color(0xFFEC4E42);
   static const _badgeText = Color(0xFFFFE3DE);
+  /// Space occupied by the bottom control bar (progress + buttons + padding).
+  static const _controlsSubtitleLift = 120.0;
 
   @override
   State<PlayerScreen> createState() => _PlayerScreenState();
@@ -272,7 +275,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
       _subFontCurrent = 0,
       _videoSpeedCurrent = 1;
 
-  double _subSize = 22, _subMargin = 16;
+  double _subSize = 30, _subMargin = 69;
 
   String _currentQualityCode = '', _aspectRatioName = '', _subFont = '';
   String _newTime = '';
@@ -1072,8 +1075,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
         subTextColor: 0,
         subBgColor: 2,
         subFont: 1,
-        subSize: 22,
-        subMargin: 16,
+        subSize: 30,
+        subMargin: 69,
         videoSpeed: 1,
       ),
     );
@@ -1085,8 +1088,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
       _subBgColor = _getSubBgColor(_subBgColorCurrent);
       _subFontCurrent = 1;
       _subFont = _getSubFont(_subFontCurrent);
-      _subSize = 22;
-      _subMargin = 16;
+      _subSize = 30;
+      _subMargin = 69;
       _videoSpeedCurrent = 1;
       _videoSpeed = 1;
     });
@@ -1166,7 +1169,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
                         fontFamily: _subFont,
                         backgroundColor: _subBgColor,
                       ),
-                      padding: EdgeInsets.only(bottom: _subMargin),
+                      padding: EdgeInsets.only(
+                        bottom: _subMargin +
+                            (_showController && !_isLocked
+                                ? PlayerScreen._controlsSubtitleLift
+                                : 0),
+                      ),
                     ),
                   ),
                 ),
@@ -1344,6 +1352,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                     child: _PlayerIconButton(
                       asset: 'assets/img/player/player_lock.svg',
                       tooltip: 'باز کردن قفل',
+                      tooltipBelow: true,
                       onTap: _changeLockState,
                     ),
                   ),
@@ -1389,6 +1398,7 @@ class _PlayerHeader extends StatelessWidget {
           _PlayerIconButton(
             asset: 'assets/img/player/player_back.svg',
             tooltip: 'بازگشت',
+            tooltipBelow: true,
             onTap: onBack,
           ),
           const Spacer(),
@@ -1723,10 +1733,15 @@ class _QualityButton extends StatelessWidget {
 }
 
 class _PlayerTooltip extends StatefulWidget {
-  const _PlayerTooltip({required this.message, required this.child});
+  const _PlayerTooltip({
+    required this.message,
+    required this.child,
+    this.preferBelow = false,
+  });
 
   final String message;
   final Widget child;
+  final bool preferBelow;
 
   @override
   State<_PlayerTooltip> createState() => _PlayerTooltipState();
@@ -1742,6 +1757,39 @@ class _PlayerTooltipState extends State<_PlayerTooltip> {
 
   @override
   Widget build(BuildContext context) {
+    final bubble = ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          decoration: BoxDecoration(
+            color: blueColor.withValues(alpha: 0.24),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            widget.message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontFamily: 'dana',
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              height: 14 / 12,
+              letterSpacing: 0.1,
+            ),
+          ),
+        ),
+      ),
+    );
+    final arrow = CustomPaint(
+      size: const Size(12, 5.5),
+      painter: _TooltipArrowPainter(
+        color: blueColor.withValues(alpha: 0.24),
+        pointUp: widget.preferBelow,
+      ),
+    );
+
     return MouseRegion(
       onEnter: (_) => _setVisible(true),
       onExit: (_) => _setVisible(false),
@@ -1752,46 +1800,14 @@ class _PlayerTooltipState extends State<_PlayerTooltip> {
           widget.child,
           if (_visible)
             Positioned(
-              bottom: 56,
+              top: widget.preferBelow ? 56 : null,
+              bottom: widget.preferBelow ? null : 56,
               child: IgnorePointer(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: blueColor.withValues(alpha: 0.24),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            widget.message,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontFamily: 'dana',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              height: 14 / 12,
-                              letterSpacing: 0.1,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    CustomPaint(
-                      size: const Size(12, 5.5),
-                      painter: _TooltipArrowPainter(
-                        color: blueColor.withValues(alpha: 0.24),
-                      ),
-                    ),
-                  ],
+                  children: widget.preferBelow
+                      ? [arrow, bubble]
+                      : [bubble, arrow],
                 ),
               ),
             ),
@@ -1802,23 +1818,30 @@ class _PlayerTooltipState extends State<_PlayerTooltip> {
 }
 
 class _TooltipArrowPainter extends CustomPainter {
-  _TooltipArrowPainter({required this.color});
+  _TooltipArrowPainter({required this.color, this.pointUp = false});
 
   final Color color;
+  final bool pointUp;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final path = Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width / 2, size.height)
-      ..lineTo(size.width, 0)
-      ..close();
+    final path = pointUp
+        ? (Path()
+          ..moveTo(0, size.height)
+          ..lineTo(size.width / 2, 0)
+          ..lineTo(size.width, size.height)
+          ..close())
+        : (Path()
+          ..moveTo(0, 0)
+          ..lineTo(size.width / 2, size.height)
+          ..lineTo(size.width, 0)
+          ..close());
     canvas.drawPath(path, Paint()..color = color);
   }
 
   @override
   bool shouldRepaint(covariant _TooltipArrowPainter oldDelegate) =>
-      oldDelegate.color != color;
+      oldDelegate.color != color || oldDelegate.pointUp != pointUp;
 }
 
 class _PlayerIconButton extends StatelessWidget {
@@ -1827,6 +1850,7 @@ class _PlayerIconButton extends StatelessWidget {
     required this.asset,
     required this.onTap,
     this.tooltip,
+    this.tooltipBelow = false,
     this.iconSize = 26,
     this.iconWidth,
     this.iconHeight,
@@ -1837,6 +1861,7 @@ class _PlayerIconButton extends StatelessWidget {
   final String asset;
   final VoidCallback onTap;
   final String? tooltip;
+  final bool tooltipBelow;
   final double iconSize;
   final double? iconWidth;
   final double? iconHeight;
@@ -1852,6 +1877,7 @@ class _PlayerIconButton extends StatelessWidget {
       ),
       child: InkWell(
         onTap: onTap,
+        mouseCursor: SystemMouseCursors.click,
         customBorder: const CircleBorder(),
         child: SizedBox(
           width: size,
@@ -1864,7 +1890,11 @@ class _PlayerIconButton extends StatelessWidget {
     );
 
     if (tooltip == null || tooltip!.isEmpty) return button;
-    return _PlayerTooltip(message: tooltip!, child: button);
+    return _PlayerTooltip(
+      message: tooltip!,
+      preferBelow: tooltipBelow,
+      child: button,
+    );
   }
 }
 
@@ -1957,6 +1987,7 @@ class _ProgressBarState extends State<_ProgressBar> {
           final trackHeight = _hovering ? 5.0 : 2.0;
 
           return MouseRegion(
+            cursor: SystemMouseCursors.click,
             onEnter: (e) => _updateHover(e.localPosition, width),
             onHover: (e) => _updateHover(e.localPosition, width),
             onExit: (_) => _clearHover(),
@@ -2102,41 +2133,44 @@ class _VolumeSlider extends StatelessWidget {
       onChanged(ratio);
     }
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: (d) => handle(d.localPosition),
-      onHorizontalDragUpdate: (d) => handle(d.localPosition),
-      child: SizedBox(
-        width: _width,
-        height: 24,
-        child: Stack(
-          alignment: Alignment.centerLeft,
-          children: [
-            Positioned(
-              left: thumbCenter,
-              right: _pad,
-              child: Container(height: 1.5, color: PlayerScreen._track),
-            ),
-            Positioned(
-              left: _pad,
-              width: (thumbCenter - _pad).clamp(0.0, _width),
-              child: Container(
-                height: 1.5,
-                color: PlayerScreen._volumeFill,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (d) => handle(d.localPosition),
+        onHorizontalDragUpdate: (d) => handle(d.localPosition),
+        child: SizedBox(
+          width: _width,
+          height: 24,
+          child: Stack(
+            alignment: Alignment.centerLeft,
+            children: [
+              Positioned(
+                left: thumbCenter,
+                right: _pad,
+                child: Container(height: 1.5, color: PlayerScreen._track),
               ),
-            ),
-            Positioned(
-              left: thumbCenter - _thumb / 2,
-              child: Container(
-                width: _thumb,
-                height: _thumb,
-                decoration: const BoxDecoration(
+              Positioned(
+                left: _pad,
+                width: (thumbCenter - _pad).clamp(0.0, _width),
+                child: Container(
+                  height: 1.5,
                   color: PlayerScreen._volumeFill,
-                  shape: BoxShape.circle,
                 ),
               ),
-            ),
-          ],
+              Positioned(
+                left: thumbCenter - _thumb / 2,
+                child: Container(
+                  width: _thumb,
+                  height: _thumb,
+                  decoration: const BoxDecoration(
+                    color: PlayerScreen._volumeFill,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -242,6 +242,10 @@ class _HomeSliderItem extends StatelessWidget {
     return segments;
   }
 
+  /// Space reserved on the left for prev/next arrows (44 + 45+8+45 + gap).
+  static const _arrowReserve = 160.0;
+  static const _panelHorizontalPadding = 44.0 + 64.0;
+
   @override
   Widget build(BuildContext context) {
     final meta = _metaChildren();
@@ -249,7 +253,15 @@ class _HomeSliderItem extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final sliderWidth = constraints.maxWidth;
-        final panelWidth = sliderWidth * 0.55;
+        // Prefer ~55% on wide layouts; when the panel would otherwise stack
+        // vertically, expand toward the arrows so info can use that space.
+        final preferredPanel = sliderWidth * 0.55;
+        final maxPanel = (sliderWidth - _arrowReserve).clamp(0.0, sliderWidth);
+        final wouldStack = preferredPanel - _panelHorizontalPadding <
+            _SliderHeroPanel._stackBreakpoint;
+        final panelWidth =
+            wouldStack ? maxPanel : preferredPanel.clamp(0.0, maxPanel);
+        final expanded = panelWidth > preferredPanel + 1;
 
         return Stack(
           fit: StackFit.expand,
@@ -292,10 +304,10 @@ class _HomeSliderItem extends StatelessWidget {
               top: 0,
               right: 0,
               bottom: 0,
-              width: panelWidth.clamp(0.0, sliderWidth),
+              width: panelWidth,
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
-                  44,
+                  expanded ? 24 : 44,
                   60,
                   64,
                   52,
@@ -343,6 +355,8 @@ class _SliderHeroPanel extends StatelessWidget {
   static const _gap = 20.0;
   static const _minTextWidth = 200.0;
   static const _stackBreakpoint = 520.0;
+  /// Approximate min height needed for titles + button (no summary/poster).
+  static const _minInfoHeight = 180.0;
 
   final double availableWidth;
   final double availableHeight;
@@ -356,8 +370,19 @@ class _SliderHeroPanel extends StatelessWidget {
 
   ({double width, double height}) _posterSize({required bool stacked}) {
     if (stacked) {
-      final width = (availableWidth * 0.42).clamp(120.0, _maxPosterWidth);
-      return (width: width, height: width / _posterAspect);
+      var width = (availableWidth * 0.42).clamp(100.0, _maxPosterWidth);
+      var height = width / _posterAspect;
+      // Keep room for the text block above the poster.
+      final maxHeight =
+          (availableHeight - _minInfoHeight - 16).clamp(0.0, height);
+      if (maxHeight < 80) {
+        return (width: 0, height: 0);
+      }
+      if (height > maxHeight) {
+        height = maxHeight;
+        width = height * _posterAspect;
+      }
+      return (width: width, height: height);
     }
 
     var width = (availableWidth - _gap - _minTextWidth)
@@ -374,13 +399,15 @@ class _SliderHeroPanel extends StatelessWidget {
   bool get _showPoster {
     final stacked = availableWidth < _stackBreakpoint;
     final size = _posterSize(stacked: stacked);
-    return size.width >= 120;
+    return size.width >= 100 && size.height >= 80;
   }
 
   @override
   Widget build(BuildContext context) {
     final stacked = availableWidth < _stackBreakpoint;
     final posterSize = _posterSize(stacked: stacked);
+    final showPoster = _showPoster;
+    final compact = stacked || availableHeight < 420;
     final info = _SliderInfoSection(
       genreNames: genreNames,
       englishTitle: englishTitle,
@@ -389,6 +416,7 @@ class _SliderHeroPanel extends StatelessWidget {
       summary: summary,
       post: post,
       titleScale: stacked ? 0.82 : 1,
+      summaryMaxLines: compact ? 2 : 3,
     );
 
     if (stacked) {
@@ -396,8 +424,14 @@ class _SliderHeroPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          info,
-          if (_showPoster) ...[
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.bottomStart,
+              child: SizedBox(width: availableWidth, child: info),
+            ),
+          ),
+          if (showPoster) ...[
             const SizedBox(height: 16),
             Align(
               alignment: AlignmentDirectional.centerEnd,
@@ -415,13 +449,13 @@ class _SliderHeroPanel extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        if (_showPoster)
+        if (showPoster)
           _SliderPoster(
             url: posterUrl,
             width: posterSize.width,
             height: posterSize.height,
           ),
-        if (_showPoster) const SizedBox(width: _gap),
+        if (showPoster) const SizedBox(width: _gap),
         Expanded(child: info),
       ],
     );
@@ -437,6 +471,7 @@ class _SliderInfoSection extends StatelessWidget {
     required this.summary,
     required this.post,
     this.titleScale = 1,
+    this.summaryMaxLines = 3,
   });
 
   final List<String> genreNames;
@@ -446,6 +481,7 @@ class _SliderInfoSection extends StatelessWidget {
   final String summary;
   final Post post;
   final double titleScale;
+  final int summaryMaxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -528,11 +564,11 @@ class _SliderInfoSection extends StatelessWidget {
             ),
           ),
         ],
-        if (summary.isNotEmpty) ...[
+        if (summary.isNotEmpty && summaryMaxLines > 0) ...[
           const SizedBox(height: 10),
           Text(
             summary,
-            maxLines: 3,
+            maxLines: summaryMaxLines,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.justify,
             style: TextStyle(

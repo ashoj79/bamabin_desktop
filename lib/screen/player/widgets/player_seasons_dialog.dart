@@ -614,6 +614,7 @@ class _EpisodePlayButton extends StatelessWidget {
         ),
       ),
       child: InkWell(
+        mouseCursor: SystemMouseCursors.click,
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
@@ -666,6 +667,7 @@ class _CloseButton extends StatelessWidget {
         side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
       ),
       child: InkWell(
+        mouseCursor: SystemMouseCursors.click,
         onTap: onTap,
         customBorder: const CircleBorder(),
         child: SizedBox(
@@ -699,6 +701,7 @@ class _FilterPill extends StatelessWidget {
       color: Colors.white.withValues(alpha: 0.08),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
+        mouseCursor: SystemMouseCursors.click,
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
@@ -748,6 +751,7 @@ class _CircleNavButton extends StatelessWidget {
       color: Colors.white.withValues(alpha: 0.08),
       shape: const CircleBorder(),
       child: InkWell(
+        mouseCursor: SystemMouseCursors.click,
         onTap: onTap,
         customBorder: const CircleBorder(),
         child: SizedBox(
@@ -774,6 +778,7 @@ class _LabeledToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
+      mouseCursor: SystemMouseCursors.click,
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Row(
@@ -805,27 +810,30 @@ class _MiniSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          width: 42,
-          height: 24,
-          padding: const EdgeInsets.all(3),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
-            color: value ? blueColor : Colors.white.withValues(alpha: 0.12),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: value ? 0.0 : 0.12),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            width: 42,
+            height: 24,
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(999),
+              color: value ? blueColor : Colors.white.withValues(alpha: 0.12),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: value ? 0.0 : 0.12),
+              ),
             ),
-          ),
-          alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            width: 18,
-            height: 18,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
+            alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+            child: Container(
+              width: 18,
+              height: 18,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
@@ -860,6 +868,7 @@ class _AccordionCard extends StatelessWidget {
       child: Column(
         children: [
           InkWell(
+            mouseCursor: SystemMouseCursors.click,
             onTap: onToggle,
             borderRadius: BorderRadius.circular(12),
             child: Row(
@@ -919,6 +928,7 @@ class _NestedTypeCard extends StatelessWidget {
       child: Column(
         children: [
           InkWell(
+            mouseCursor: SystemMouseCursors.click,
             onTap: onToggle,
             borderRadius: BorderRadius.circular(8),
             child: Row(
@@ -971,6 +981,7 @@ class _ChevronButton extends StatelessWidget {
       color: Colors.white.withValues(alpha: 0.09),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
+        mouseCursor: SystemMouseCursors.click,
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: SizedBox(

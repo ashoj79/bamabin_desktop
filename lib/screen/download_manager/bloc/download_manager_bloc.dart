@@ -4,6 +4,7 @@ import 'package:bamabin_desktop/data/local/model/download_task.dart';
 import 'package:bamabin_desktop/repository/download_repository.dart';
 import 'package:bamabin_desktop/screen/download_manager/bloc/download_manager_event.dart';
 import 'package:bamabin_desktop/screen/download_manager/bloc/download_manager_state.dart';
+import 'package:bamabin_desktop/utils/download_completion_notifier.dart';
 import 'package:bloc/bloc.dart';
 
 class DownloadManagerBloc
@@ -43,6 +44,9 @@ class DownloadManagerBloc
         initialized: true,
       ),
     );
+    unawaited(
+      DownloadCompletionNotifier.instance.onTasksUpdated(_repository.tasks),
+    );
   }
 
   void _onTasksUpdated(
@@ -55,6 +59,9 @@ class DownloadManagerBloc
         tasks: event.tasks,
         selectedIds: state.selectedIds.intersection(validIds),
       ),
+    );
+    unawaited(
+      DownloadCompletionNotifier.instance.onTasksUpdated(event.tasks),
     );
   }
 

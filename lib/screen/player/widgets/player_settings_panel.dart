@@ -196,6 +196,7 @@ class _CircleIconButton extends StatelessWidget {
       color: const Color(0x17FFFFFF),
       shape: const CircleBorder(side: BorderSide(color: Color(0x0FFFFFFF))),
       child: InkWell(
+        mouseCursor: SystemMouseCursors.click,
         onTap: onTap,
         customBorder: const CircleBorder(),
         child: SizedBox(
@@ -325,6 +326,7 @@ class _Chip extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
+        mouseCursor: SystemMouseCursors.click,
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
@@ -421,6 +423,7 @@ class _ResetButton extends StatelessWidget {
       color: const Color(0x14FFFFFF),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
+        mouseCursor: SystemMouseCursors.click,
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(

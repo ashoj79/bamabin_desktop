@@ -6,6 +6,7 @@ import 'package:bamabin_desktop/core/widgets/window_title_bar.dart';
 import 'package:bamabin_desktop/screen/splash/bloc/splash_bloc.dart';
 import 'package:bamabin_desktop/utils/deep_link_handler.dart';
 import 'package:bamabin_desktop/utils/di.dart';
+import 'package:bamabin_desktop/utils/download_completion_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:media_kit/media_kit.dart';
@@ -15,6 +16,7 @@ Future<void> main() async {
   await initDesktopWindow();
   MediaKit.ensureInitialized();
   await setupLocator();
+  await DownloadCompletionNotifier.instance.init();
   await DeepLinkHandler.instance.init();
   runApp(
     MultiBlocProvider(

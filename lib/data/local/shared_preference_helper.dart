@@ -135,7 +135,7 @@ class SharedPreferenceHelper {
   }
 
   Future<int> getSubSize() async {
-    return _sharedPreferences.getInt('subtitleSize') ?? 22;
+    return _sharedPreferences.getInt('subtitleSize') ?? 30;
   }
 
   Future<void> setSubMargin(int data) async {
@@ -143,7 +143,7 @@ class SharedPreferenceHelper {
   }
 
   Future<int> getSubMargin() async {
-    return _sharedPreferences.getInt('subtitleMargin') ?? 16;
+    return _sharedPreferences.getInt('subtitleMargin') ?? 69;
   }
 
   Future<void> setVideoSpeed(int data) async {

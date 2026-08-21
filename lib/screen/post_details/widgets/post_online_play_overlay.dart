@@ -70,25 +70,13 @@ class PostOnlinePlayOverlay extends StatefulWidget {
 }
 
 class _PostOnlinePlayOverlayState extends State<PostOnlinePlayOverlay> {
-  int? _expandedSeasonIndex = 0;
+  int? _expandedSeasonIndex;
   final Map<String, int?> _expandedTypeByKey = {};
 
   int _seasonIndex = 0;
   String? _selectedQuality;
   bool _filterSubtitle = false;
   bool _filterDubbed = false;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.isSeries) {
-      if (widget.seasons.isNotEmpty) {
-        _expandedTypeByKey['s0'] = 0;
-      }
-    } else {
-      _expandedTypeByKey['movie'] = 0;
-    }
-  }
 
   List<String> get _seasonOptions => [
         'همه لینک ها',
@@ -297,9 +285,7 @@ class _PostOnlinePlayOverlayState extends State<PostOnlinePlayOverlay> {
     setState(() {
       _seasonIndex = index;
       if (index > 0) {
-        final seasonIndex = index - 1;
-        _expandedSeasonIndex = seasonIndex;
-        _expandedTypeByKey.putIfAbsent('s$seasonIndex', () => 0);
+        _expandedSeasonIndex = index - 1;
       }
     });
   }
@@ -539,12 +525,8 @@ class _PostOnlinePlayOverlayState extends State<PostOnlinePlayOverlay> {
             onToggle: () {
               final s = visible[i];
               setState(() {
-                if (_expandedSeasonIndex == s) {
-                  _expandedSeasonIndex = null;
-                } else {
-                  _expandedSeasonIndex = s;
-                  _expandedTypeByKey.putIfAbsent('s$s', () => 0);
-                }
+                _expandedSeasonIndex =
+                    _expandedSeasonIndex == s ? null : s;
               });
             },
             child: _buildSeasonTypes(visible[i], widget.seasons[visible[i]].items),
@@ -1202,7 +1184,7 @@ class _ChevronButton extends StatelessWidget {
           child: Icon(
             expanded
                 ? Icons.keyboard_arrow_up_rounded
-                : Icons.chevron_left_rounded,
+                : Icons.chevron_right_rounded,
             color: Colors.white.withValues(alpha: 0.85),
           ),
         ),
