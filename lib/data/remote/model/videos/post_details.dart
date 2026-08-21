@@ -43,6 +43,13 @@ class MovieInfo {
     encoder: json['encoder'] ?? '',
     size: json['size'] ?? '',
   );
+
+  /// UI / file title: `قسمت {name}`, falling back to [fallbackNumber] if name is empty.
+  String episodeLabel([int fallbackNumber = 1]) {
+    final trimmed = name.trim();
+    if (trimmed.isNotEmpty) return 'قسمت $trimmed';
+    return 'قسمت $fallbackNumber';
+  }
 }
 
 // --- QualityInfo ---

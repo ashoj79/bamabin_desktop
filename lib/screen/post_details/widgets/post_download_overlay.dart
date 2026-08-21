@@ -274,7 +274,10 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
     if (seasonName != null && seasonName.isNotEmpty) {
       parts.add('فصل $seasonName');
     }
-    if (episodeNumber != null) {
+    final episodeName = info.name.trim();
+    if (episodeName.isNotEmpty) {
+      parts.add('قسمت $episodeName');
+    } else if (episodeNumber != null) {
       parts.add('قسمت $episodeNumber');
     }
     final quality = info.encoder.isNotEmpty
@@ -1414,7 +1417,7 @@ class _SeriesQualityItem extends StatelessWidget {
           itemBuilder: (context, index) {
             final episode = quality.episodes[index];
             return _EpisodeDownloadButton(
-              label: 'قسمت ${index + 1}',
+              label: episode.episodeLabel(index + 1),
               onDownload: () => onDownloadEpisode(episode, index + 1),
               onCopy: () => onCopyEpisode(episode),
             );

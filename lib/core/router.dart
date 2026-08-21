@@ -28,6 +28,8 @@ import 'package:bamabin_desktop/screen/tickets/bloc/ticket_details_bloc.dart';
 import 'package:bamabin_desktop/screen/tickets/bloc/tickets_bloc.dart';
 import 'package:bamabin_desktop/screen/tickets/ticket_details_screen.dart';
 import 'package:bamabin_desktop/screen/tickets/tickets_screen.dart';
+import 'package:bamabin_desktop/screen/notifications/bloc/notifications_bloc.dart';
+import 'package:bamabin_desktop/screen/notifications/notifications_screen.dart';
 import 'package:bamabin_desktop/screen/top250/bloc/top250_bloc.dart';
 import 'package:bamabin_desktop/screen/top250/top250_screen.dart';
 import 'package:bamabin_desktop/screen/watch_status/bloc/watch_status_bloc.dart';
@@ -135,8 +137,10 @@ final GoRouter router = GoRouter(
         ),
         GoRoute(
           path: Routes.notifications,
-          builder: (context, state) =>
-              const MainPlaceholderPage(title: 'اعلان‌ها'),
+          builder: (context, state) => BlocProvider(
+            create: (_) => locator<NotificationsBloc>(),
+            child: const NotificationsScreen(),
+          ),
         ),
         GoRoute(
           path: Routes.downloadManager,

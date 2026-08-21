@@ -589,8 +589,9 @@ class _EpisodeGrid extends StatelessWidget {
         final selected = seasonIndex == currentSeason &&
             index == currentEpisode &&
             type == currentType;
+        final episode = episodes[index];
         return _EpisodePlayButton(
-          label: 'قسمت ${index + 1}',
+          label: episode.episodeLabel(index + 1),
           selected: selected,
           isWatched: isEpisodeWatched(seasonIndex, index),
           onTap: () => onTap(index),

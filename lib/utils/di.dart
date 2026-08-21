@@ -33,6 +33,7 @@ import 'package:bamabin_desktop/screen/categories/bloc/taxonomy_posts_bloc.dart'
 import 'package:bamabin_desktop/screen/categories/taxonomy_posts_args.dart';
 import 'package:bamabin_desktop/screen/tickets/bloc/ticket_details_bloc.dart';
 import 'package:bamabin_desktop/screen/tickets/bloc/tickets_bloc.dart';
+import 'package:bamabin_desktop/screen/notifications/bloc/notifications_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bamabin_desktop/config/dio_helper.dart';
 import 'package:get_it/get_it.dart';
@@ -126,5 +127,8 @@ Future<void> setupLocator() async {
   );
   locator.registerFactory<TicketDetailsBloc>(
     () => TicketDetailsBloc(locator()),
+  );
+  locator.registerFactory<NotificationsBloc>(
+    () => NotificationsBloc(locator()),
   );
 }
