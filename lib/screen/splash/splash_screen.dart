@@ -1,8 +1,8 @@
 import 'package:bamabin_desktop/core/routes.dart';
-import 'package:bamabin_desktop/core/widgets/dialogs.dart';
 import 'package:bamabin_desktop/core/widgets/loading_widget.dart';
 import 'package:bamabin_desktop/screen/splash/bloc/splash_bloc.dart';
 import 'package:bamabin_desktop/screen/splash/widgets/splash_offline_dialog.dart';
+import 'package:bamabin_desktop/screen/splash/widgets/update_dialogs.dart';
 import 'package:bamabin_desktop/utils/deep_link_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,19 +30,57 @@ class _SplashScreenState extends State<SplashScreen> {
     });
   }
 
+  Future<void> _openInstaller(String filePath) async {
+    try {
+      await context.read<SplashBloc>().openInstallerAndExit(filePath);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+      context.read<SplashBloc>().add(ResetAppUpdateDownload());
+    }
+  }
+
+  void _goMain() {
+    context.go(Routes.main);
+    DeepLinkHandler.instance.markReady();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SplashBloc, SplashState>(
       listener: (context, state) {
-        if (state is! SplashSuccess) return;
+        if (state is SplashSuccess) {
+          final download = state.downloadState;
 
-        if (!state.appVersion.needUpdate) {
-          context.go(Routes.main);
-          DeepLinkHandler.instance.markReady();
+          if (download is UpdateDownloadReady) {
+            _openInstaller(download.filePath);
+            return;
+          }
+
+          if (download is UpdateDownloadError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(download.message)),
+            );
+            context.read<SplashBloc>().add(ResetAppUpdateDownload());
+            return;
+          }
+
+          if (!state.appVersion.needUpdate) {
+            _goMain();
+            return;
+          }
+
+          if (!_showUpdateDialog) {
+            setState(() => _showUpdateDialog = true);
+          }
           return;
         }
 
-        setState(() => _showUpdateDialog = true);
+        if (state is SplashError && _showUpdateDialog) {
+          setState(() => _showUpdateDialog = false);
+        }
       },
       builder: (context, state) {
         return ColoredBox(
@@ -88,7 +126,19 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               if (state is SplashError) const SplashOfflineDialog(),
               if (_showUpdateDialog && state is SplashSuccess)
-                UpdateDialog(appVersion: state.appVersion),
+                SplashUpdateOverlay(
+                  appVersion: state.appVersion,
+                  downloadState: state.downloadState,
+                  onUpdateClick: () {
+                    context.read<SplashBloc>().add(StartAppUpdateDownload());
+                  },
+                  onDismissClick: () {
+                    if (state.appVersion.isRequires) return;
+                    setState(() => _showUpdateDialog = false);
+                    context.read<SplashBloc>().add(ResetAppUpdateDownload());
+                    _goMain();
+                  },
+                ),
             ],
           ),
         );

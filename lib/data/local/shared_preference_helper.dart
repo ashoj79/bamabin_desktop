@@ -1,9 +1,11 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPreferenceHelper {
-  final SharedPreferences _sharedPreferences;
+  SharedPreferenceHelper(this._sharedPreferences, this._secureStorage);
 
-  SharedPreferenceHelper(this._sharedPreferences);
+  final SharedPreferences _sharedPreferences;
+  final FlutterSecureStorage _secureStorage;
 
   static const _keyUrlData = 'urlData';
   static const _keyAllowAccess = 'allowAccess';
@@ -17,6 +19,58 @@ class SharedPreferenceHelper {
   static const _keyPhone = 'phone';
   static const _keyCity = 'city';
   static const _keyDescription = 'description';
+  static const _migrationDoneKey = 'auth_migrated_to_secure_v1';
+
+  static const _secureKeys = [
+    _keyApiKey,
+    _keyUsername,
+    _keyEmail,
+    _keyAvatar,
+    _keyFirstName,
+    _keyLastName,
+    _keyNickname,
+    _keyPhone,
+    _keyCity,
+    _keyDescription,
+  ];
+
+  final Map<String, String> _secureCache = {};
+
+  Future<void> init() async {
+    await _migrateAuthToSecureStorage();
+    await _loadSecureCache();
+  }
+
+  Future<void> _migrateAuthToSecureStorage() async {
+    if (_sharedPreferences.getBool(_migrationDoneKey) == true) return;
+
+    for (final key in _secureKeys) {
+      final value = _sharedPreferences.getString(key);
+      if (value != null && value.isNotEmpty) {
+        await _secureStorage.write(key: key, value: value);
+        await _sharedPreferences.remove(key);
+      }
+    }
+
+    await _sharedPreferences.setBool(_migrationDoneKey, true);
+  }
+
+  Future<void> _loadSecureCache() async {
+    for (final key in _secureKeys) {
+      _secureCache[key] = await _secureStorage.read(key: key) ?? '';
+    }
+  }
+
+  Future<void> _setSecure(String key, String value) async {
+    _secureCache[key] = value;
+    if (value.isEmpty) {
+      await _secureStorage.delete(key: key);
+    } else {
+      await _secureStorage.write(key: key, value: value);
+    }
+  }
+
+  String _getSecure(String key) => _secureCache[key] ?? '';
 
   Future<void> setUrlData(String url) async {
     await _sharedPreferences.setString(_keyUrlData, url);
@@ -26,85 +80,50 @@ class SharedPreferenceHelper {
     return _sharedPreferences.getString(_keyUrlData) ?? '';
   }
 
-  String getApiKey() {
-    return _sharedPreferences.getString(_keyApiKey) ?? '';
-  }
+  String getApiKey() => _getSecure(_keyApiKey);
 
-  Future<void> setApiKey(String apiKey) async {
-    await _sharedPreferences.setString(_keyApiKey, apiKey);
-  }
+  Future<void> setApiKey(String apiKey) => _setSecure(_keyApiKey, apiKey);
 
-  String getUsername() {
-    return _sharedPreferences.getString(_keyUsername) ?? '';
-  }
+  String getUsername() => _getSecure(_keyUsername);
 
-  Future<void> setUsername(String username) async {
-    await _sharedPreferences.setString(_keyUsername, username);
-  }
+  Future<void> setUsername(String username) =>
+      _setSecure(_keyUsername, username);
 
-  String getEmail() {
-    return _sharedPreferences.getString(_keyEmail) ?? '';
-  }
+  String getEmail() => _getSecure(_keyEmail);
 
-  Future<void> setEmail(String email) async {
-    await _sharedPreferences.setString(_keyEmail, email);
-  }
+  Future<void> setEmail(String email) => _setSecure(_keyEmail, email);
 
-  String getAvatar() {
-    return _sharedPreferences.getString(_keyAvatar) ?? '';
-  }
+  String getAvatar() => _getSecure(_keyAvatar);
 
-  Future<void> setAvatar(String avatar) async {
-    await _sharedPreferences.setString(_keyAvatar, avatar);
-  }
+  Future<void> setAvatar(String avatar) => _setSecure(_keyAvatar, avatar);
 
-  String getFirstName() {
-    return _sharedPreferences.getString(_keyFirstName) ?? '';
-  }
+  String getFirstName() => _getSecure(_keyFirstName);
 
-  Future<void> setFirstName(String firstName) async {
-    await _sharedPreferences.setString(_keyFirstName, firstName);
-  }
+  Future<void> setFirstName(String firstName) =>
+      _setSecure(_keyFirstName, firstName);
 
-  String getLastName() {
-    return _sharedPreferences.getString(_keyLastName) ?? '';
-  }
+  String getLastName() => _getSecure(_keyLastName);
 
-  Future<void> setLastName(String lastName) async {
-    await _sharedPreferences.setString(_keyLastName, lastName);
-  }
+  Future<void> setLastName(String lastName) =>
+      _setSecure(_keyLastName, lastName);
 
-  String getNickname() {
-    return _sharedPreferences.getString(_keyNickname) ?? '';
-  }
+  String getNickname() => _getSecure(_keyNickname);
 
-  Future<void> setNickname(String nickname) async {
-    await _sharedPreferences.setString(_keyNickname, nickname);
-  }
+  Future<void> setNickname(String nickname) =>
+      _setSecure(_keyNickname, nickname);
 
-  String getPhone() {
-    return _sharedPreferences.getString(_keyPhone) ?? '';
-  }
+  String getPhone() => _getSecure(_keyPhone);
 
-  Future<void> setPhone(String phone) async {
-    await _sharedPreferences.setString(_keyPhone, phone);
-  }
+  Future<void> setPhone(String phone) => _setSecure(_keyPhone, phone);
 
-  String getCity() {
-    return _sharedPreferences.getString(_keyCity) ?? '';
-  }
+  String getCity() => _getSecure(_keyCity);
 
-  Future<void> setCity(String city) async {
-    await _sharedPreferences.setString(_keyCity, city);
-  }
+  Future<void> setCity(String city) => _setSecure(_keyCity, city);
 
-  String getDescription() {
-    return _sharedPreferences.getString(_keyDescription) ?? '';
-  }
+  String getDescription() => _getSecure(_keyDescription);
 
-  Future<void> setDescription(String description) async {
-    await _sharedPreferences.setString(_keyDescription, description);
-  }
+  Future<void> setDescription(String description) =>
+      _setSecure(_keyDescription, description);
 
   Future<void> setSubTextColor(int data) async {
     await _sharedPreferences.setInt('subtitleTextColor', data);
@@ -163,17 +182,12 @@ class SharedPreferenceHelper {
   }
 
   Future<void> clearAuthData() async {
+    for (final key in _secureKeys) {
+      _secureCache[key] = '';
+    }
     await Future.wait([
-      _sharedPreferences.remove(_keyApiKey),
-      _sharedPreferences.remove(_keyUsername),
-      _sharedPreferences.remove(_keyEmail),
-      _sharedPreferences.remove(_keyAvatar),
-      _sharedPreferences.remove(_keyFirstName),
-      _sharedPreferences.remove(_keyLastName),
-      _sharedPreferences.remove(_keyNickname),
-      _sharedPreferences.remove(_keyPhone),
-      _sharedPreferences.remove(_keyCity),
-      _sharedPreferences.remove(_keyDescription),
+      for (final key in _secureKeys) _secureStorage.delete(key: key),
+      for (final key in _secureKeys) _sharedPreferences.remove(key),
     ]);
   }
 }

@@ -36,6 +36,7 @@ import 'package:bamabin_desktop/screen/tickets/bloc/tickets_bloc.dart';
 import 'package:bamabin_desktop/screen/notifications/bloc/notifications_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bamabin_desktop/config/dio_helper.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 
 final locator = GetIt.instance;
@@ -44,9 +45,15 @@ Future<void> setupLocator() async {
   locator.registerSingleton<SharedPreferences>(
     await SharedPreferences.getInstance(),
   );
-  locator.registerSingleton<SharedPreferenceHelper>(
-    SharedPreferenceHelper(locator()),
+  locator.registerSingleton<FlutterSecureStorage>(
+    const FlutterSecureStorage(),
   );
+  final sharedPreferenceHelper = SharedPreferenceHelper(
+    locator(),
+    locator(),
+  );
+  await sharedPreferenceHelper.init();
+  locator.registerSingleton<SharedPreferenceHelper>(sharedPreferenceHelper);
 
   // Database
   var database = await $FloorBamabinDB.databaseBuilder('bamabin.db').build();

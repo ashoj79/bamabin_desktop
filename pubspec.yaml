@@ -70,6 +70,7 @@ dependencies:
   path: ^1.9.1
   window_manager: ^0.5.2
   local_notifier: ^0.1.6
+  flutter_secure_storage: ^10.3.1
 
 dev_dependencies:
   flutter_test:

@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "bamabin_desktop" "\0"
+            VALUE "CompanyName", "com.bamabin" "\0"
+            VALUE "FileDescription", "Bamabin" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "bamabin_desktop" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.bamabin. All rights reserved." "\0"
             VALUE "OriginalFilename", "bamabin_desktop.exe" "\0"
-            VALUE "ProductName", "bamabin_desktop" "\0"
+            VALUE "ProductName", "app" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

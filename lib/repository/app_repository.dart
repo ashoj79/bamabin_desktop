@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bamabin_desktop/data/local/temp_db.dart';
 import 'package:bamabin_desktop/data/remote/api_service/app_api_service.dart';
 import 'package:bamabin_desktop/data/remote/api_service/root_api_service.dart';
@@ -9,7 +11,9 @@ import 'package:bamabin_desktop/data/remote/model/app/plan_discount_price.dart';
 import 'package:bamabin_desktop/data/remote/model/app/startup_data.dart';
 import 'package:bamabin_desktop/data/local/shared_preference_helper.dart';
 import 'package:bamabin_desktop/data/remote/url_helper.dart';
+import 'package:bamabin_desktop/utils/app_update_helper.dart';
 import 'package:bamabin_desktop/utils/data_state.dart';
+import 'package:dio/dio.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class AppRepository {
@@ -186,6 +190,26 @@ class AppRepository {
     } else {
       return DataError(response.message ?? 'خطایی رخ داده است');
     }
+  }
+
+  Future<void> cleanupLeftoverUpdates() {
+    return AppUpdateHelper.cleanupLeftoverUpdates();
+  }
+
+  Future<File> downloadAppUpdate({
+    required String url,
+    required void Function(int downloaded, int total) onProgress,
+    CancelToken? cancelToken,
+  }) {
+    return AppUpdateHelper.downloadUpdate(
+      url: url,
+      onProgress: onProgress,
+      cancelToken: cancelToken,
+    );
+  }
+
+  Future<void> openInstallerAndExit(String filePath) {
+    return AppUpdateHelper.openInstallerAndExit(filePath);
   }
 
   Future<void> setSubTextColor(int data) async {

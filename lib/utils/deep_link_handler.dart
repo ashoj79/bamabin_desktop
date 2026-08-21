@@ -140,7 +140,7 @@ class DeepLinkHandler {
     await appsDir.create(recursive: true);
 
     final exe = Platform.resolvedExecutable;
-    const desktopName = 'com.example.bamabin_desktop.desktop';
+    const desktopName = 'com.bamabin.app.desktop';
     final desktopFile = File('${appsDir.path}/$desktopName');
     await desktopFile.writeAsString('''
 [Desktop Entry]

@@ -1,9 +1,6 @@
-import 'dart:io';
-
 import 'package:bamabin_desktop/config/color.dart';
 import 'package:bamabin_desktop/core/widgets/loading_widget.dart';
 import 'package:bamabin_desktop/data/local/temp_db.dart';
-import 'package:bamabin_desktop/data/remote/model/app/app_version.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -36,87 +33,6 @@ ButtonStyle _dialogButtonStyle(BuildContext context) {
     ),
     minimumSize: WidgetStateProperty.all(const Size(double.infinity, 48)),
   );
-}
-
-class UpdateDialog extends StatelessWidget {
-  const UpdateDialog({super.key, required this.appVersion});
-
-  final AppVersion appVersion;
-
-  @override
-  Widget build(BuildContext context) {
-    final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
-      color: Colors.white,
-      fontWeight: FontWeight.w700,
-    );
-    final bodyStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
-      color: Colors.white,
-      fontWeight: FontWeight.w700,
-    );
-    final buttonTextStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
-      fontWeight: FontWeight.w600,
-    );
-
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      backgroundColor: const Color(0xFF2B2B2B),
-      content: SizedBox(
-        width: double.infinity,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Stack(
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: Text(
-                    'به‌روزرسانی',
-                    style: titleStyle,
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                Align(
-                  alignment: AlignmentDirectional.topEnd,
-                  child: IconButton(
-                    onPressed: () => exit(0),
-                    icon: Icon(Icons.cancel_outlined, color: failedColor),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'نسخه‌ی جدیدی از برنامه منتشر شده است. برای استفاده از تمامی امکانات، لطفاً برنامه را به‌روزرسانی بفرمایید.',
-              style: bodyStyle,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 48),
-            ElevatedButton(
-              style: _dialogButtonStyle(context),
-              onPressed: () => _openUrl(appVersion.directLink),
-              child: Text(
-                'دانلود مستقیم',
-                textAlign: TextAlign.center,
-                style: buttonTextStyle,
-              ),
-            ),
-            if (appVersion.playStoreLink.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              ElevatedButton(
-                style: _dialogButtonStyle(context),
-                onPressed: () => _openUrl(appVersion.playStoreLink),
-                child: Text(
-                  'دانلود از پلی استور',
-                  textAlign: TextAlign.center,
-                  style: buttonTextStyle,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class ErrorDialog extends StatelessWidget {
@@ -258,14 +174,6 @@ class LoadingDialog extends StatelessWidget {
       ),
     );
   }
-}
-
-Future<void> showUpdateDialog(BuildContext context, AppVersion appVersion) {
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) => UpdateDialog(appVersion: appVersion),
-  );
 }
 
 Future<void> showErrorDialog(
