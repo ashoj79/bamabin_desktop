@@ -13,6 +13,7 @@ part 'post_details_state.dart';
 class PostDetailsBloc extends Bloc<PostDetailsEvent, PostDetailsState> {
   PostDetailsBloc(this._videoRepository) : super(PostDetailsInitial()) {
     on<LoadPostDetailsEvent>(_onLoadPostDetails);
+    on<LoadMoreCommentsEvent>(_onLoadMoreComments);
     on<SubmitCommentEvent>(_onSubmitComment);
     on<LikePostEvent>(_onLikePost);
     on<ToggleWatchlistEvent>(_onToggleWatchlist);
@@ -28,6 +29,8 @@ class PostDetailsBloc extends Bloc<PostDetailsEvent, PostDetailsState> {
       preview: event.post,
       isDetailsLoading: true,
       isCommentsLoading: true,
+      commentsPage: 0,
+      hasMoreComments: false,
     );
     emit(view);
 
@@ -55,17 +58,81 @@ class PostDetailsBloc extends Bloc<PostDetailsEvent, PostDetailsState> {
     if (emit.isDone) return;
 
     if (commentsResponse is DataSuccess<List<Comment>>) {
+      final pageItems = commentsResponse.data ?? const <Comment>[];
       view = view.copyWith(
-        comments: commentsResponse.data ?? const [],
+        comments: pageItems,
+        commentsPage: 1,
+        // Keep offering "more" until an empty page is received.
+        hasMoreComments: pageItems.isNotEmpty,
         isCommentsLoading: false,
       );
     } else {
       view = view.copyWith(
         comments: const [],
+        commentsPage: 0,
+        hasMoreComments: false,
         isCommentsLoading: false,
       );
     }
     emit(view);
+  }
+
+  Future<void> _onLoadMoreComments(
+    LoadMoreCommentsEvent event,
+    Emitter<PostDetailsState> emit,
+  ) async {
+    final current = state;
+    if (current is! PostDetailsViewState) return;
+    if (current.isCommentsLoading ||
+        current.isLoadingMoreComments ||
+        !current.hasMoreComments) {
+      return;
+    }
+
+    final nextPage = current.commentsPage + 1;
+    emit(current.copyWith(isLoadingMoreComments: true));
+
+    final response = await _videoRepository.getComments(
+      event.postId,
+      nextPage,
+    );
+
+    final latest = state;
+    if (latest is! PostDetailsViewState) return;
+
+    if (response is DataSuccess<List<Comment>>) {
+      final pageItems = response.data ?? const <Comment>[];
+      if (pageItems.isEmpty) {
+        emit(
+          latest.copyWith(
+            hasMoreComments: false,
+            isLoadingMoreComments: false,
+          ),
+        );
+        return;
+      }
+
+      final existingIds = latest.comments.map((c) => c.id).toSet();
+      final appended = [
+        ...latest.comments,
+        ...pageItems.where((c) => !existingIds.contains(c.id)),
+      ];
+      emit(
+        latest.copyWith(
+          comments: appended,
+          commentsPage: nextPage,
+          hasMoreComments: true,
+          isLoadingMoreComments: false,
+        ),
+      );
+    } else {
+      emit(
+        latest.copyWith(
+          isLoadingMoreComments: false,
+          hasMoreComments: false,
+        ),
+      );
+    }
   }
 
   Future<void> _onSubmitComment(
@@ -94,12 +161,15 @@ class PostDetailsBloc extends Bloc<PostDetailsEvent, PostDetailsState> {
       );
       final refreshed = state;
       if (refreshed is! PostDetailsViewState) return;
+      final pageItems = commentsResponse is DataSuccess<List<Comment>>
+          ? (commentsResponse.data ?? refreshed.comments)
+          : refreshed.comments;
       emit(
         refreshed.copyWith(
           isSubmittingComment: false,
-          comments: commentsResponse is DataSuccess<List<Comment>>
-              ? (commentsResponse.data ?? refreshed.comments)
-              : refreshed.comments,
+          comments: pageItems,
+          commentsPage: 1,
+          hasMoreComments: pageItems.isNotEmpty,
         ),
       );
     } else {

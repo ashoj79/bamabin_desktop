@@ -320,7 +320,7 @@ class _$WatchedEpisodeDao extends WatchedEpisodeDao {
   Future<List<WatchedEpisode>> getWatchedEpisodes(int id) async {
     return _queryAdapter.queryList('SELECT * FROM WatchedEpisode WHERE id=?1',
         mapper: (Map<String, Object?> row) => WatchedEpisode(
-            pk: row['pk'] as int,
+            pk: row['pk'] as int?,
             id: row['id'] as int,
             season: row['season'] as int,
             episode: row['episode'] as int,
@@ -356,7 +356,7 @@ class _$WatchedEpisodeDao extends WatchedEpisodeDao {
     return _queryAdapter.query(
         'SELECT * FROM WatchedEpisode ORDER BY time LIMIT 1',
         mapper: (Map<String, Object?> row) => WatchedEpisode(
-            pk: row['pk'] as int,
+            pk: row['pk'] as int?,
             id: row['id'] as int,
             season: row['season'] as int,
             episode: row['episode'] as int,

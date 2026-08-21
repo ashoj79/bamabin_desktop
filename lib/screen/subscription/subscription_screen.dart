@@ -223,9 +223,15 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                             selected: i == state.selectedIndex,
                             codeDiscountPrice:
                                 state.discountedPrices[state.plans[i].id],
-                            onTap: () => context.read<SubscriptionBloc>().add(
-                              SubscriptionSelectPlanEvent(index: i),
-                            ),
+                            onTap: () {
+                              context.read<SubscriptionBloc>().add(
+                                SubscriptionSelectPlanEvent(index: i),
+                              );
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (!mounted) return;
+                                _showGatewayDialog();
+                              });
+                            },
                           ),
                         ],
                       if (state.plans.isNotEmpty) ...[

@@ -67,7 +67,7 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
 
   List<String> get _seasonOptions {
     return [
-      'همه لینک ها',
+      'همه‌ی فصل‌ها',
       for (final season in widget.seasons) 'فصل ${season.name}',
     ];
   }

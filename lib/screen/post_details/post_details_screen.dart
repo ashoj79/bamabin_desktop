@@ -217,6 +217,8 @@ class _PostDetailsBody extends StatelessWidget {
                   comments: state.comments,
                   isLoading: state.isCommentsLoading,
                   isSubmitting: state.isSubmittingComment,
+                  hasMore: state.hasMoreComments,
+                  isLoadingMore: state.isLoadingMoreComments,
                   controller: commentController,
                   onSubmit: (text) {
                     context.read<PostDetailsBloc>().add(
@@ -224,6 +226,11 @@ class _PostDetailsBody extends StatelessWidget {
                         postId: preview.id,
                         content: text,
                       ),
+                    );
+                  },
+                  onLoadMore: () {
+                    context.read<PostDetailsBloc>().add(
+                      LoadMoreCommentsEvent(postId: preview.id),
                     );
                   },
                 ),

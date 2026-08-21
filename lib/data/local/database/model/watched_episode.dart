@@ -3,7 +3,7 @@ import 'package:floor/floor.dart';
 @entity
 class WatchedEpisode {
   WatchedEpisode({
-    this.pk = 0,
+    this.pk,
     required this.id,
     required this.season,
     required this.episode,
@@ -12,7 +12,7 @@ class WatchedEpisode {
   });
 
   @PrimaryKey(autoGenerate: true)
-  final int pk;
+  final int? pk;
   final int id;
   final int season;
   final int episode;

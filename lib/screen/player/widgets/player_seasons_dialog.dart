@@ -18,6 +18,7 @@ class PlayerSeasonsAlert {
     required int currentSeason,
     required int currentEpisode,
     required MovieType currentType,
+    required bool Function(int seasonIndex, int episodeIndex) isEpisodeWatched,
     required void Function(int seasonIndex, int episodeIndex, MovieType type)
         onEpisodeSelected,
   }) async {
@@ -35,6 +36,7 @@ class PlayerSeasonsAlert {
             currentSeason: currentSeason,
             currentEpisode: currentEpisode,
             currentType: currentType,
+            isEpisodeWatched: isEpisodeWatched,
             onEpisodeSelected: onEpisodeSelected,
           ),
         );
@@ -65,6 +67,7 @@ class _SeasonsModal extends StatefulWidget {
     required this.currentSeason,
     required this.currentEpisode,
     required this.currentType,
+    required this.isEpisodeWatched,
     required this.onEpisodeSelected,
   });
 
@@ -72,6 +75,7 @@ class _SeasonsModal extends StatefulWidget {
   final int currentSeason;
   final int currentEpisode;
   final MovieType currentType;
+  final bool Function(int seasonIndex, int episodeIndex) isEpisodeWatched;
   final void Function(int seasonIndex, int episodeIndex, MovieType type)
       onEpisodeSelected;
 
@@ -530,6 +534,7 @@ class _SeasonsModalState extends State<_SeasonsModal> {
                 currentType: widget.currentType,
                 seasonIndex: seasonIndex,
                 type: sections[i].type,
+                isEpisodeWatched: widget.isEpisodeWatched,
                 onTap: (episodeIndex) {
                   Navigator.of(context).pop();
                   widget.onEpisodeSelected(
@@ -555,6 +560,7 @@ class _EpisodeGrid extends StatelessWidget {
     required this.currentType,
     required this.seasonIndex,
     required this.type,
+    required this.isEpisodeWatched,
     required this.onTap,
   });
 
@@ -564,6 +570,7 @@ class _EpisodeGrid extends StatelessWidget {
   final MovieType currentType;
   final int seasonIndex;
   final MovieType type;
+  final bool Function(int seasonIndex, int episodeIndex) isEpisodeWatched;
   final ValueChanged<int> onTap;
 
   @override
@@ -575,7 +582,7 @@ class _EpisodeGrid extends StatelessWidget {
         crossAxisCount: 3,
         crossAxisSpacing: 8,
         mainAxisSpacing: 10,
-            mainAxisExtent: 56,
+        mainAxisExtent: 56,
       ),
       itemCount: episodes.length,
       itemBuilder: (context, index) {
@@ -585,6 +592,7 @@ class _EpisodeGrid extends StatelessWidget {
         return _EpisodePlayButton(
           label: 'قسمت ${index + 1}',
           selected: selected,
+          isWatched: isEpisodeWatched(seasonIndex, index),
           onTap: () => onTap(index),
         );
       },
@@ -596,15 +604,18 @@ class _EpisodePlayButton extends StatelessWidget {
   const _EpisodePlayButton({
     required this.label,
     required this.selected,
+    required this.isWatched,
     required this.onTap,
   });
 
   final String label;
   final bool selected;
+  final bool isWatched;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final foreground = Colors.white.withValues(alpha: selected ? 1 : 0.75);
     return Material(
       color: selected ? blueColor : Colors.white.withValues(alpha: 0.09),
       shape: RoundedRectangleBorder(
@@ -618,9 +629,21 @@ class _EpisodePlayButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(
             children: [
+              if (isWatched) ...[
+                SvgPicture.asset(
+                  'assets/img/baseline_visibility_24.svg',
+                  width: 18,
+                  height: 18,
+                  colorFilter: ColorFilter.mode(
+                    selected ? Colors.white : blueColor,
+                    BlendMode.srcIn,
+                  ),
+                ),
+                const SizedBox(width: 6),
+              ],
               Expanded(
                 child: Text(
                   label,
@@ -631,7 +654,7 @@ class _EpisodePlayButton extends StatelessWidget {
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.18,
-                    color: Colors.white.withValues(alpha: selected ? 1 : 0.75),
+                    color: foreground,
                   ),
                 ),
               ),

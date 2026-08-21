@@ -9,6 +9,12 @@ final class LoadPostDetailsEvent extends PostDetailsEvent {
   final Post post;
 }
 
+final class LoadMoreCommentsEvent extends PostDetailsEvent {
+  LoadMoreCommentsEvent({required this.postId});
+
+  final int postId;
+}
+
 final class SubmitCommentEvent extends PostDetailsEvent {
   SubmitCommentEvent({
     required this.postId,

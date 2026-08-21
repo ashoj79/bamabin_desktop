@@ -376,13 +376,13 @@ class _HeroContent extends StatelessWidget {
         const SizedBox(height: 12),
         if (isDetailsLoading && (summary == null || summary!.isEmpty))
           const _SummaryShimmer()
+        else if (summary != null && summary!.isNotEmpty)
+          _ExpandableSummary(summary: summary!)
         else
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 500),
             child: Text(
-              summary != null && summary!.isNotEmpty
-                  ? 'خلاصه داستان: $summary'
-                  : 'خلاصه‌ای موجود نیست.',
+              'خلاصه‌ای موجود نیست.',
               textAlign: TextAlign.right,
               style: TextStyle(
                 fontSize: 16,
@@ -1061,6 +1061,114 @@ class _IconHeroButton extends StatelessWidget {
           ),
         ),
       );
+  }
+}
+
+class _ExpandableSummary extends StatefulWidget {
+  const _ExpandableSummary({required this.summary});
+
+  final String summary;
+
+  @override
+  State<_ExpandableSummary> createState() => _ExpandableSummaryState();
+}
+
+class _ExpandableSummaryState extends State<_ExpandableSummary> {
+  static const _maxCollapsedLines = 4;
+  static const _textStyle = TextStyle(
+    fontSize: 16,
+    height: 22 / 16,
+    color: Color(0xB3FFFFFF),
+    letterSpacing: -0.18,
+  );
+
+  var _expanded = false;
+  var _overflowing = false;
+
+  String get _text => 'خلاصه داستان: ${widget.summary}';
+
+  @override
+  void didUpdateWidget(covariant _ExpandableSummary oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.summary != widget.summary) {
+      _expanded = false;
+      _overflowing = false;
+    }
+  }
+
+  void _updateOverflow(double maxWidth) {
+    final painter = TextPainter(
+      text: TextSpan(text: _text, style: _textStyle),
+      maxLines: _maxCollapsedLines,
+      textDirection: TextDirection.rtl,
+      ellipsis: '…',
+    )..layout(maxWidth: maxWidth);
+
+    final overflows = painter.didExceedMaxLines;
+    if (overflows == _overflowing) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || overflows == _overflowing) return;
+      setState(() => _overflowing = overflows);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 500),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (!_expanded) {
+            _updateOverflow(constraints.maxWidth);
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _text,
+                textAlign: TextAlign.justify,
+                maxLines: _expanded ? null : _maxCollapsedLines,
+                overflow:
+                    _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                style: _textStyle,
+              ),
+              if (_overflowing || _expanded) ...[
+                const SizedBox(height: 6),
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () => setState(() => _expanded = !_expanded),
+                    behavior: HitTestBehavior.opaque,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _expanded ? 'کمتر' : 'ادامه',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: accentColor,
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        Icon(
+                          _expanded
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                          size: 16,
+                          color: accentColor,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          );
+        },
+      ),
+    );
   }
 }
 

@@ -12,7 +12,10 @@ final class PostDetailsViewState extends PostDetailsState {
     this.isDetailsLoading = false,
     this.detailsError,
     this.comments = const [],
+    this.commentsPage = 0,
+    this.hasMoreComments = false,
     this.isCommentsLoading = false,
+    this.isLoadingMoreComments = false,
     this.isSubmittingComment = false,
     this.commentError,
     this.likeActionLoading,
@@ -26,7 +29,10 @@ final class PostDetailsViewState extends PostDetailsState {
   final bool isDetailsLoading;
   final String? detailsError;
   final List<Comment> comments;
+  final int commentsPage;
+  final bool hasMoreComments;
   final bool isCommentsLoading;
+  final bool isLoadingMoreComments;
   final bool isSubmittingComment;
   final String? commentError;
 
@@ -43,7 +49,10 @@ final class PostDetailsViewState extends PostDetailsState {
     String? detailsError,
     bool clearDetailsError = false,
     List<Comment>? comments,
+    int? commentsPage,
+    bool? hasMoreComments,
     bool? isCommentsLoading,
+    bool? isLoadingMoreComments,
     bool? isSubmittingComment,
     String? commentError,
     bool clearCommentError = false,
@@ -63,7 +72,11 @@ final class PostDetailsViewState extends PostDetailsState {
           ? null
           : (detailsError ?? this.detailsError),
       comments: comments ?? this.comments,
+      commentsPage: commentsPage ?? this.commentsPage,
+      hasMoreComments: hasMoreComments ?? this.hasMoreComments,
       isCommentsLoading: isCommentsLoading ?? this.isCommentsLoading,
+      isLoadingMoreComments:
+          isLoadingMoreComments ?? this.isLoadingMoreComments,
       isSubmittingComment: isSubmittingComment ?? this.isSubmittingComment,
       commentError: clearCommentError
           ? null

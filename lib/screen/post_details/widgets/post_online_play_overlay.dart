@@ -1,8 +1,10 @@
 import 'package:bamabin_desktop/config/color.dart';
 import 'package:bamabin_desktop/core/routes.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/post_details.dart';
+import 'package:bamabin_desktop/repository/video_repository.dart';
 import 'package:bamabin_desktop/screen/player/player_screen.dart';
 import 'package:bamabin_desktop/screen/post_details/widgets/post_media_access_guard.dart';
+import 'package:bamabin_desktop/utils/di.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
@@ -72,14 +74,38 @@ class PostOnlinePlayOverlay extends StatefulWidget {
 class _PostOnlinePlayOverlayState extends State<PostOnlinePlayOverlay> {
   int? _expandedSeasonIndex;
   final Map<String, int?> _expandedTypeByKey = {};
+  final Set<String> _watchedEpisodeKeys = {};
 
   int _seasonIndex = 0;
   String? _selectedQuality;
   bool _filterSubtitle = false;
   bool _filterDubbed = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadWatchedEpisodes();
+  }
+
+  Future<void> _loadWatchedEpisodes() async {
+    if (!widget.isSeries) return;
+    final id = widget.data?.id;
+    if (id == null) return;
+    final list = await locator<VideoRepository>().getWatchedEpisodes(id);
+    if (!mounted) return;
+    setState(() {
+      _watchedEpisodeKeys
+        ..clear()
+        ..addAll(list.map((e) => '${e.season}:${e.episode}'));
+    });
+  }
+
+  bool _isEpisodeWatched(int seasonIndex, int episodeIndex) {
+    return _watchedEpisodeKeys.contains('$seasonIndex:$episodeIndex');
+  }
+
   List<String> get _seasonOptions => [
-        'همه لینک ها',
+        'همه‌ی فصل‌ها',
         for (final season in widget.seasons) 'فصل ${season.name}',
       ];
 
@@ -566,6 +592,8 @@ class _PostOnlinePlayOverlayState extends State<PostOnlinePlayOverlay> {
             },
             child: _EpisodeGrid(
               episodes: sections[i].items.first.episodes,
+              seasonIndex: seasonIndex,
+              isEpisodeWatched: _isEpisodeWatched,
               onTap: (episodeIndex) {
                 final episode = sections[i].items.first.episodes[episodeIndex];
                 _openPlayer(
@@ -843,9 +871,16 @@ class _MiniSwitch extends StatelessWidget {
 }
 
 class _EpisodeGrid extends StatelessWidget {
-  const _EpisodeGrid({required this.episodes, required this.onTap});
+  const _EpisodeGrid({
+    required this.episodes,
+    required this.seasonIndex,
+    required this.isEpisodeWatched,
+    required this.onTap,
+  });
 
   final List<MovieInfo> episodes;
+  final int seasonIndex;
+  final bool Function(int seasonIndex, int episodeIndex) isEpisodeWatched;
   final ValueChanged<int> onTap;
 
   @override
@@ -863,6 +898,7 @@ class _EpisodeGrid extends StatelessWidget {
       itemBuilder: (context, index) {
         return _EpisodePlayButton(
           label: 'قسمت ${index + 1}',
+          isWatched: isEpisodeWatched(seasonIndex, index),
           onTap: () => onTap(index),
         );
       },
@@ -871,9 +907,14 @@ class _EpisodeGrid extends StatelessWidget {
 }
 
 class _EpisodePlayButton extends StatelessWidget {
-  const _EpisodePlayButton({required this.label, required this.onTap});
+  const _EpisodePlayButton({
+    required this.label,
+    required this.isWatched,
+    required this.onTap,
+  });
 
   final String label;
+  final bool isWatched;
   final VoidCallback onTap;
 
   @override
@@ -889,9 +930,18 @@ class _EpisodePlayButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(
             children: [
+              if (isWatched) ...[
+                SvgPicture.asset(
+                  'assets/img/baseline_visibility_24.svg',
+                  width: 18,
+                  height: 18,
+                  colorFilter: ColorFilter.mode(blueColor, BlendMode.srcIn),
+                ),
+                const SizedBox(width: 6),
+              ],
               Expanded(
                 child: Text(
                   label,

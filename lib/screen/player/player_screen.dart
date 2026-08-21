@@ -19,6 +19,7 @@ import 'package:bamabin_desktop/screen/player/widgets/player_settings_panel.dart
 import 'package:bamabin_desktop/utils/di.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
@@ -40,7 +41,7 @@ String _formatPlayerDuration(Duration d) {
 
 String _getClearTitle(String title) {
   var t = title.trim();
-  t = t.replaceAll(RegExp(r'[اآبپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی]'), '').trim();
+  t = t.replaceAll(RegExp(r'[اآبپتثجچحخدذرزژسشصضطظعغفقکگلمنوهیئ]'), '').trim();
   return t;
 }
 
@@ -228,7 +229,7 @@ class _PlayerSubtitleLayerState extends State<_PlayerSubtitleLayer> {
             alignment: Alignment.bottomCenter,
             child: StrokeText(
               text: text,
-              strokeWidth: 2,
+              strokeWidth: 3,
               style: widget.style,
               textAlign: TextAlign.center,
               textScaler: TextScaler.linear(textScaleFactor),
@@ -256,7 +257,7 @@ class PlayerScreen extends StatefulWidget {
   static const _badgeBg = Color(0xFFEC4E42);
   static const _badgeText = Color(0xFFFFE3DE);
   /// Space occupied by the bottom control bar (progress + buttons + padding).
-  static const _controlsSubtitleLift = 120.0;
+  static const _controlsSubtitleLift = 110.0;
 
   @override
   State<PlayerScreen> createState() => _PlayerScreenState();
@@ -281,6 +282,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   String _newTime = '';
   bool _showController = true, _showSettings = false, _isLocked = false;
   bool _isWindowFullScreen = false;
+  bool _showNextEpisodeButton = false;
   BoxFit _aspectRatio = BoxFit.cover;
   static const double _maxVolume = 100;
   double _volume = 100, _videoSpeed = 1.0;
@@ -296,6 +298,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   final GlobalKey _subtitleButtonKey = GlobalKey();
   final GlobalKey _audioButtonKey = GlobalKey();
   final GlobalKey _qualityButtonKey = GlobalKey();
+  final FocusNode _focusNode = FocusNode();
 
   final List<WatchedEpisode> _watchedEpisodes = [];
   WatchingEpisode? _watchingEpisode;
@@ -305,9 +308,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
   StreamSubscription<Duration>? _durationSub;
   StreamSubscription<bool>? _playingSub;
   StreamSubscription<bool>? _bufferingSub;
+  StreamSubscription<bool>? _completedSub;
 
   Duration _position = Duration.zero, _duration = Duration.zero;
   bool _playing = false, _buffering = false, _isLoaded = false;
+  var _isVideoInfoExtracted = false;
+  var _isPlaybackEnded = false;
 
   @override
   void initState() {
@@ -335,23 +341,40 @@ class _PlayerScreenState extends State<PlayerScreen> {
       if (!mounted) return;
       setState(() => _volume = v.clamp(0, _maxVolume).toDouble());
     });
+    _positionSub = _player.stream.position.listen((d) {
+      if (!mounted) return;
+      setState(() => _position = d);
+      _updateNextEpisodeButtonVisibility();
+    });
+    _durationSub = _player.stream.duration.listen((d) {
+      if (!mounted) return;
+      setState(() => _duration = d);
+      _updateNextEpisodeButtonVisibility();
+      if (!_isVideoInfoExtracted && d > Duration.zero) {
+        _isVideoInfoExtracted = true;
+        unawaited(_onVideoReady());
+      }
+    });
+    _bufferingSub = _player.stream.buffering.listen((b) {
+      if (mounted) setState(() => _buffering = b);
+    });
     _playingSub = _player.stream.playing.listen((v) {
       if (!mounted) return;
       setState(() => _playing = v);
+      _updateNextEpisodeButtonVisibility();
       if (v) {
         _hideController();
       } else {
         _hideControllerTimer?.cancel();
       }
     });
-    _positionSub = _player.stream.position.listen((d) {
-      if (mounted) setState(() => _position = d);
-    });
-    _durationSub = _player.stream.duration.listen((d) {
-      if (mounted) setState(() => _duration = d);
-    });
-    _bufferingSub = _player.stream.buffering.listen((b) {
-      if (mounted) setState(() => _buffering = b);
+    _completedSub = _player.stream.completed.listen((completed) {
+      if (!mounted || !completed) return;
+      _isPlaybackEnded = true;
+      if (widget.args.isLocalPlayback) return;
+      BlocProvider.of<PlayerBloc>(
+        context,
+      ).add(PlayerDeleteWatchDataEvent(id: widget.args.data.id));
     });
 
     _saveWatchingEpisode();
@@ -365,10 +388,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
     unawaited(_durationSub?.cancel());
     unawaited(_playingSub?.cancel());
     unawaited(_bufferingSub?.cancel());
+    unawaited(_completedSub?.cancel());
     _hideControllerTimer?.cancel();
     _hideAspectRatioTimer?.cancel();
     _updateNewTimeTimer?.cancel();
     _saveWatchingEpisodeTimer?.cancel();
+    _focusNode.dispose();
     unawaited(_player.dispose());
     super.dispose();
   }
@@ -415,11 +440,51 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   void _hideController() {
     _hideControllerTimer?.cancel();
+    // Keep chrome visible while the next-episode CTA is showing (Kotlin parity).
+    if (_showNextEpisodeButton) return;
     _hideControllerTimer = Timer(const Duration(seconds: 5), () {
-      if (mounted && _player.state.playing && !_showSettings) {
+      if (mounted &&
+          _player.state.playing &&
+          !_showSettings &&
+          !_showNextEpisodeButton) {
         setState(() => _showController = false);
       }
     });
+  }
+
+  bool get _hasNextEpisode {
+    final data = widget.args.data;
+    if (!data.isSeries) return false;
+    final seasons = data.seasons;
+    if (seasons == null || seasons.isEmpty) return false;
+    final count = seasons[_seasonIndex].items.getEpisodesCount();
+    if (_episodeIndex + 1 < count) return true;
+    return _seasonIndex + 1 < seasons.length;
+  }
+
+  void _updateNextEpisodeButtonVisibility() {
+    final remaining = _duration - _position;
+    final shouldShow = widget.args.data.isSeries &&
+        !_isLocked &&
+        _playing &&
+        _duration > Duration.zero &&
+        remaining > Duration.zero &&
+        remaining <= const Duration(minutes: 5) &&
+        _hasNextEpisode;
+
+    if (shouldShow == _showNextEpisodeButton) return;
+
+    setState(() {
+      _showNextEpisodeButton = shouldShow;
+      if (shouldShow) {
+        _showController = true;
+      }
+    });
+    if (shouldShow) {
+      _hideControllerTimer?.cancel();
+    } else {
+      _hideController();
+    }
   }
 
   void setShowSettings(bool value) {
@@ -428,27 +493,15 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 
   void _saveWatchingEpisode() {
+    _saveWatchingEpisodeTimer?.cancel();
     _saveWatchingEpisodeTimer = Timer.periodic(const Duration(seconds: 10), (
       timer,
     ) {
       if (!mounted) return;
       if (widget.args.isLocalPlayback) return;
+      if (_isPlaybackEnded) return;
 
-      final position = _player.state.position.inMilliseconds;
-      final duration = _player.state.duration.inMilliseconds;
-      final isEnded =
-          position >= duration * 0.8 && duration > Duration.zero.inMilliseconds;
-
-      if (!isEnded) unawaited(_saveWatchData());
-
-      if (isEnded) {
-        unawaited(_saveWatchedEpisode());
-        BlocProvider.of<PlayerBloc>(
-          context,
-        ).add(PlayerDeleteWatchDataEvent(id: widget.args.data.id));
-        timer.cancel();
-        return;
-      }
+      unawaited(_saveWatchData());
 
       if (!widget.args.data.isSeries) return;
 
@@ -470,15 +523,25 @@ class _PlayerScreenState extends State<PlayerScreen> {
     });
   }
 
+  Future<void> _onVideoReady() async {
+    // Like Kotlin extractVideoInfo → saveWatchedEpisode on STATE_READY.
+    await _saveWatchedEpisode();
+  }
+
   Future<void> _loadWatchedEpisodes() async {
     if (widget.args.isLocalPlayback || !widget.args.data.isSeries) return;
     final list = await locator<VideoRepository>().getWatchedEpisodes(
       widget.args.data.id,
     );
     if (!mounted) return;
+    // Merge with any episodes saved while this load was in flight.
+    final merged = <String, WatchedEpisode>{
+      for (final e in list) '${e.season}:${e.episode}': e,
+      for (final e in _watchedEpisodes) '${e.season}:${e.episode}': e,
+    };
     _watchedEpisodes
       ..clear()
-      ..addAll(list);
+      ..addAll(merged.values);
   }
 
   Future<void> _tryResumePlayback() async {
@@ -586,11 +649,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   Future<void> _saveWatchData() async {
     if (widget.args.isLocalPlayback) return;
+    if (_isPlaybackEnded) return;
     final positionMs = _player.state.position.inMilliseconds;
     final durationMs = _player.state.duration.inMilliseconds;
-    final isEnd = durationMs > 0 && positionMs >= (durationMs * 0.8);
 
-    if (isEnd || positionMs <= 0) return;
+    if (positionMs <= 0) return;
 
     final data = widget.args.data.isSeries
         ? widget.args.data.seasons![_seasonIndex].items.getEpisodeInfo(
@@ -832,7 +895,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
       }
       return;
     }
-    final pos = _player.state.position;
+    final resumeAt = _player.state.position > Duration.zero
+        ? _player.state.position
+        : _position;
+    final rate = _videoSpeed;
     setState(() {
       _qualityIndex = selectedIndex;
       if (widget.args.data.isSeries) {
@@ -852,8 +918,32 @@ class _PlayerScreenState extends State<PlayerScreen> {
             qualityIndex: _qualityIndex,
           )
         : widget.args.data.movieDownloadBox!.getLink(_type, _qualityIndex);
-    await _player.open(Media(url), play: true);
-    await _player.seek(pos);
+
+    await _player.open(
+      Media(
+        url,
+        start: resumeAt > Duration.zero ? resumeAt : null,
+      ),
+      play: false,
+    );
+
+    if (resumeAt > Duration.zero) {
+      try {
+        await _player.stream.duration
+            .firstWhere((d) => d > Duration.zero)
+            .timeout(const Duration(seconds: 20));
+      } on TimeoutException {
+        // Still attempt seek below.
+      }
+      if (!mounted) return;
+      await _player.seek(resumeAt);
+      _updateNewTime(resumeAt);
+    }
+
+    await _player.setRate(rate);
+    if (wasPlaying) {
+      await _player.play();
+    }
   }
 
   List<AudioTrack> _usableAudioTracks() {
@@ -1010,6 +1100,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
       currentSeason: _seasonIndex,
       currentEpisode: _episodeIndex,
       currentType: _type,
+      isEpisodeWatched: (season, episode) => _watchedEpisodes.any(
+        (e) => e.season == season && e.episode == episode,
+      ),
       onEpisodeSelected: (seasonIndex, episodeIndex, type) {
         _onEpisodeSelected(seasonIndex, episodeIndex, type);
       },
@@ -1022,6 +1115,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
     _episodeIndex = episodeIndex;
     _type = type;
     _qualityIndex = -1;
+    _showNextEpisodeButton = false;
+    _isVideoInfoExtracted = false;
+    _isPlaybackEnded = false;
+    _watchingEpisode = null;
+    _watchData = null;
     unawaited(_player.stop());
     unawaited(_player.open(Media(getPlayLink()), play: true));
     setState(() {});
@@ -1100,8 +1198,14 @@ class _PlayerScreenState extends State<PlayerScreen> {
     setState(() {
       _isLocked = !_isLocked;
       _showController = false;
+      if (_isLocked) {
+        _showNextEpisodeButton = false;
+      }
       setShowSettings(false);
     });
+    if (!_isLocked) {
+      _updateNextEpisodeButtonVisibility();
+    }
   }
 
   void _setVolume(double value) {
@@ -1137,18 +1241,34 @@ class _PlayerScreenState extends State<PlayerScreen> {
         },
         child: Scaffold(
           backgroundColor: PlayerScreen._bg,
-          body: Directionality(
-            // Player chrome matches Figma LTR layout (scrubber / transport).
-            textDirection: TextDirection.ltr,
-            child: MouseRegion(
-              opaque: false,
-              onHover: (_) => _onPointerActivity(),
-              onEnter: (_) => _onPointerActivity(),
-              child: Listener(
-                behavior: HitTestBehavior.translucent,
-                onPointerHover: (_) => _onPointerActivity(),
-                onPointerMove: (_) => _onPointerActivity(),
-                child: Stack(
+          body: CallbackShortcuts(
+            bindings: {
+              const SingleActivator(LogicalKeyboardKey.arrowLeft): () {
+                if (_isLocked) return;
+                unawaited(_replay10());
+                _onPointerActivity();
+              },
+              const SingleActivator(LogicalKeyboardKey.arrowRight): () {
+                if (_isLocked) return;
+                unawaited(_forward10());
+                _onPointerActivity();
+              },
+            },
+            child: Focus(
+              autofocus: true,
+              focusNode: _focusNode,
+              child: Directionality(
+                // Player chrome matches Figma LTR layout (scrubber / transport).
+                textDirection: TextDirection.ltr,
+                child: MouseRegion(
+                  opaque: false,
+                  onHover: (_) => _onPointerActivity(),
+                  onEnter: (_) => _onPointerActivity(),
+                  child: Listener(
+                    behavior: HitTestBehavior.translucent,
+                    onPointerHover: (_) => _onPointerActivity(),
+                    onPointerMove: (_) => _onPointerActivity(),
+                    child: Stack(
               fit: StackFit.expand,
               children: [
                 Video(
@@ -1181,6 +1301,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
+                    _focusNode.requestFocus();
                     if (_isLocked) return;
                     if (_showSettings) {
                       setShowSettings(false);
@@ -1244,6 +1365,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                 child: GestureDetector(
                                   behavior: HitTestBehavior.opaque,
                                   onTap: () {
+                                    _focusNode.requestFocus();
                                     unawaited(_player.playOrPause());
                                     _onPointerActivity();
                                   },
@@ -1258,6 +1380,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                   playing: _playing,
                                   isLoaded: _isLoaded,
                                   isSeries: widget.args.data.isSeries,
+                                  showNextEpisodeButton: _showNextEpisodeButton,
                                   showQuality: !widget.args.isLocalPlayback,
                                   qualityLabel: _currentQualityCode,
                                   volume: _volume,
@@ -1372,6 +1495,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
             ),
             ),
           ),
+            ),
+          ),
         ),
       ),
     );
@@ -1449,6 +1574,7 @@ class _PlayerBottomBar extends StatelessWidget {
     required this.playing,
     required this.isLoaded,
     required this.isSeries,
+    this.showNextEpisodeButton = false,
     this.showQuality = true,
     required this.qualityLabel,
     required this.volume,
@@ -1480,6 +1606,7 @@ class _PlayerBottomBar extends StatelessWidget {
   final bool playing;
   final bool isLoaded;
   final bool isSeries;
+  final bool showNextEpisodeButton;
   final bool showQuality;
   final String qualityLabel;
   final double volume;
@@ -1513,7 +1640,22 @@ class _PlayerBottomBar extends StatelessWidget {
 
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        AnimatedSize(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.bottomCenter,
+          child: showNextEpisodeButton
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: _NextEpisodeButton(onTap: onSkipNext),
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(
@@ -1669,6 +1811,36 @@ class _PlayerBottomBar extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _NextEpisodeButton extends StatelessWidget {
+  const _NextEpisodeButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: blueColor,
+      borderRadius: BorderRadius.circular(4),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(4),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Text(
+            'پخش قسمت بعد',
+            style: TextStyle(
+              fontFamily: 'dana',
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

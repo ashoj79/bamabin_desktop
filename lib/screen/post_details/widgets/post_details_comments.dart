@@ -14,6 +14,9 @@ class PostDetailsCommentsSection extends StatelessWidget {
     required this.isSubmitting,
     required this.controller,
     required this.onSubmit,
+    this.hasMore = false,
+    this.isLoadingMore = false,
+    this.onLoadMore,
   });
 
   final List<Comment> comments;
@@ -21,6 +24,9 @@ class PostDetailsCommentsSection extends StatelessWidget {
   final bool isSubmitting;
   final TextEditingController controller;
   final ValueChanged<String> onSubmit;
+  final bool hasMore;
+  final bool isLoadingMore;
+  final VoidCallback? onLoadMore;
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +75,7 @@ class PostDetailsCommentsSection extends StatelessWidget {
               style: TextStyle(fontSize: 14, color: Color(0xFF555555)),
             ),
           )
-        else
+        else ...[
           ...topLevel.map(
             (comment) => Padding(
               padding: const EdgeInsets.only(bottom: 16),
@@ -79,6 +85,40 @@ class PostDetailsCommentsSection extends StatelessWidget {
               ),
             ),
           ),
+          if (hasMore && onLoadMore != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 8),
+              child: Center(
+                child: TextButton(
+                  onPressed: isLoadingMore ? null : onLoadMore,
+                  style: TextButton.styleFrom(
+                    foregroundColor: blueColor,
+                    disabledForegroundColor: blueColor.withValues(alpha: 0.5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: isLoadingMore
+                      ? SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: blueColor,
+                          ),
+                        )
+                      : const Text(
+                          'بیشتر',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+        ],
       ],
     );
   }
@@ -186,7 +226,7 @@ class _CommentComposerState extends State<_CommentComposer> {
                     : const Text(
                         'ارسال دیدگاه',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
                         ),
@@ -402,10 +442,10 @@ class _CommentBodyState extends State<_CommentBody> {
       widget.content,
       textAlign: TextAlign.justify,
       style: const TextStyle(
-        fontSize: 17,
+        fontSize: 14,
         fontWeight: FontWeight.w500,
         color: Color(0xFFF5EFE6),
-        height: 24 / 20,
+        height: 20 / 10,
       ),
     );
   }
@@ -529,10 +569,10 @@ class _CommentReply extends StatelessWidget {
               reply.content,
               textAlign: TextAlign.justify,
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: Colors.white.withValues(alpha: 0.8),
-                height: 24 / 20,
+                height: 20 / 10,
               ),
             ),
           ],

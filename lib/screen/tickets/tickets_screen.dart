@@ -54,9 +54,26 @@ class _TicketsScreenState extends State<TicketsScreen> {
   }
 
   Future<void> _openUrl(String url) async {
-    final uri = Uri.tryParse(url);
+    var normalized = url.trim();
+    if (normalized.isEmpty) return;
+    if (!normalized.contains('://')) {
+      normalized = 'https://$normalized';
+    }
+    final uri = Uri.tryParse(normalized);
     if (uri == null) return;
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+    try {
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (_) {
+      try {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      } catch (_) {}
+    }
   }
 
   void _openTicket(int ticketId, TicketsListType listType) {
@@ -135,9 +152,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
           }
 
           final loaded = state as TicketsLoaded;
-          final telegramLink = TempDb.supportLink.trim().isNotEmpty
-              ? TempDb.supportLink.trim()
-              : _telegramUrl;
+          final rawSupport = TempDb.supportLink.trim();
 
           return Align(
             alignment: Alignment.topCenter,
@@ -163,7 +178,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
                     const SizedBox(height: 24),
                     _SupportChannelsRow(
                       onBale: () => _openUrl(_baleUrl),
-                      onTelegram: () => _openUrl(telegramLink),
+                      onTelegram: () => _openUrl(_telegramUrl),
                     ),
                     const SizedBox(height: 24),
                     _NewTicketCard(
@@ -254,14 +269,15 @@ class _ChannelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
             child: Stack(
               children: [
                 // Figma base: linear #131321 80% → 48%
