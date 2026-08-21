@@ -68,6 +68,7 @@ dependencies:
   win32_registry: ^2.1.0
   path_provider: ^2.1.5
   path: ^1.9.1
+  sqflite_common_ffi: ^2.3.6
   window_manager: ^0.5.2
   local_notifier: ^0.1.6
   flutter_secure_storage: ^10.3.1

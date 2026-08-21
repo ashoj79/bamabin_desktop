@@ -7,15 +7,31 @@ final ValueNotifier<bool> windowNativeFullscreen = ValueNotifier(false);
 Future<void> initDesktopWindow() async {
   await windowManager.ensureInitialized();
   const options = WindowOptions(
-    backgroundColor: Colors.black,
+    size: Size(1280, 720),
+    center: true,
+    backgroundColor: Color(0xFF121216),
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
     title: 'Bamabin',
     windowButtonVisibility: false,
   );
-  await windowManager.waitUntilReadyToShow(options, () async {
+  // Show only after Flutter has produced a frame (see BootstrapApp).
+  windowManager.waitUntilReadyToShow(options, () async {
     await windowManager.setBrightness(Brightness.dark);
     await windowManager.show();
+    await windowManager.maximize();
     await windowManager.focus();
   });
+}
+
+Future<void> ensureDesktopWindowVisible() async {
+  try {
+    if (!await windowManager.isVisible()) {
+      await windowManager.show();
+    }
+    if (!await windowManager.isMaximized()) {
+      await windowManager.maximize();
+    }
+    await windowManager.focus();
+  } catch (_) {}
 }

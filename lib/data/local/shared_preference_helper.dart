@@ -1,11 +1,17 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPreferenceHelper {
-  SharedPreferenceHelper(this._sharedPreferences, this._secureStorage);
+  SharedPreferenceHelper(this._sharedPreferences, [this._secureStorage]);
 
   final SharedPreferences _sharedPreferences;
-  final FlutterSecureStorage _secureStorage;
+  final FlutterSecureStorage? _secureStorage;
+
+  /// Keychain prompts for password on unsigned macOS builds; use prefs instead.
+  static bool get _useSecureStorage =>
+      !kIsWeb && defaultTargetPlatform != TargetPlatform.macOS;
 
   static const _keyUrlData = 'urlData';
   static const _keyAllowAccess = 'allowAccess';
@@ -37,7 +43,9 @@ class SharedPreferenceHelper {
   final Map<String, String> _secureCache = {};
 
   Future<void> init() async {
-    await _migrateAuthToSecureStorage();
+    if (_useSecureStorage) {
+      await _migrateAuthToSecureStorage();
+    }
     await _loadSecureCache();
   }
 
@@ -47,8 +55,10 @@ class SharedPreferenceHelper {
     for (final key in _secureKeys) {
       final value = _sharedPreferences.getString(key);
       if (value != null && value.isNotEmpty) {
-        await _secureStorage.write(key: key, value: value);
-        await _sharedPreferences.remove(key);
+        final wrote = await _trySecureWrite(key, value);
+        if (wrote) {
+          await _sharedPreferences.remove(key);
+        }
       }
     }
 
@@ -57,20 +67,72 @@ class SharedPreferenceHelper {
 
   Future<void> _loadSecureCache() async {
     for (final key in _secureKeys) {
-      _secureCache[key] = await _secureStorage.read(key: key) ?? '';
+      if (_useSecureStorage) {
+        _secureCache[key] = await _trySecureRead(key) ??
+            _sharedPreferences.getString(key) ??
+            '';
+      } else {
+        _secureCache[key] = _sharedPreferences.getString(key) ?? '';
+      }
     }
   }
 
   Future<void> _setSecure(String key, String value) async {
     _secureCache[key] = value;
+    if (!_useSecureStorage) {
+      if (value.isEmpty) {
+        await _sharedPreferences.remove(key);
+      } else {
+        await _sharedPreferences.setString(key, value);
+      }
+      return;
+    }
+
     if (value.isEmpty) {
-      await _secureStorage.delete(key: key);
+      await _trySecureDelete(key);
+      await _sharedPreferences.remove(key);
     } else {
-      await _secureStorage.write(key: key, value: value);
+      final wrote = await _trySecureWrite(key, value);
+      if (!wrote) {
+        await _sharedPreferences.setString(key, value);
+      } else {
+        await _sharedPreferences.remove(key);
+      }
     }
   }
 
   String _getSecure(String key) => _secureCache[key] ?? '';
+
+  Future<String?> _trySecureRead(String key) async {
+    final storage = _secureStorage;
+    if (storage == null) return null;
+    try {
+      return await storage.read(key: key);
+    } on PlatformException {
+      return null;
+    }
+  }
+
+  Future<bool> _trySecureWrite(String key, String value) async {
+    final storage = _secureStorage;
+    if (storage == null) return false;
+    try {
+      await storage.write(key: key, value: value);
+      return true;
+    } on PlatformException {
+      return false;
+    }
+  }
+
+  Future<void> _trySecureDelete(String key) async {
+    final storage = _secureStorage;
+    if (storage == null) return;
+    try {
+      await storage.delete(key: key);
+    } on PlatformException {
+      // Keychain may be unavailable on unsigned macOS builds.
+    }
+  }
 
   Future<void> setUrlData(String url) async {
     await _sharedPreferences.setString(_keyUrlData, url);
@@ -186,7 +248,8 @@ class SharedPreferenceHelper {
       _secureCache[key] = '';
     }
     await Future.wait([
-      for (final key in _secureKeys) _secureStorage.delete(key: key),
+      if (_useSecureStorage)
+        for (final key in _secureKeys) _trySecureDelete(key),
       for (final key in _secureKeys) _sharedPreferences.remove(key),
     ]);
   }

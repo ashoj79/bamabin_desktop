@@ -92,6 +92,12 @@ class _SplashScreenState extends State<SplashScreen> {
                 child: Image.asset(
                   'assets/img/logo_dark.png',
                   fit: BoxFit.contain,
+                  errorBuilder: (_, _, _) => Image.asset(
+                    'assets/img/logo.jpg',
+                    fit: BoxFit.contain,
+                    width: 180,
+                    height: 180,
+                  ),
                 ),
               ),
               Align(
@@ -101,7 +107,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   child: SizedBox(
                     width: 164,
                     height: 164,
-                    child: state is SplashLoading
+                    child: state is SplashLoading || state is SplashInitial
                         ? const LoadingWidget(showText: false)
                         : null,
                   ),
