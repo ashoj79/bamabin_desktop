@@ -57,20 +57,26 @@ class _Top250CardState extends State<Top250Card> {
     return year;
   }
 
+  bool get _isAvailable => post.id != 0;
+
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      cursor: SystemMouseCursors.click,
+      cursor: _isAvailable
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.basic,
       child: GestureDetector(
-        onTap: () => context.push(Routes.postDetails, extra: post),
+        onTap: _isAvailable
+            ? () => context.push(Routes.postDetails, extra: post)
+            : null,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(_cardRadius),
-            boxShadow: _hovered
+            boxShadow: _hovered && _isAvailable
                 ? [
                     BoxShadow(
                       color: blueColor.withValues(alpha: 0.35),
@@ -86,7 +92,9 @@ class _Top250CardState extends State<Top250Card> {
               color: Colors.white.withValues(alpha: 0.6),
             ),
             foregroundPainter:
-                _hovered ? _CardBorderPainter(color: blueColor) : null,
+                _hovered && _isAvailable
+                    ? _CardBorderPainter(color: blueColor)
+                    : null,
             child: Padding(
               padding: const EdgeInsets.all(_cardStrokeWidth / 2),
               child: ClipRRect(

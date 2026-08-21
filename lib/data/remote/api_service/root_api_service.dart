@@ -18,7 +18,7 @@ class RootApiService {
   }
 
   Future<ApiResponse<StartupData>> getStartupData() async {
-    var response = await dioHelper.getServerCheckingkDio().get('/api/startup');
+    var response = await dioHelper.getDio().get('/startup');
     if (response.statusCode == 200) {
       return ApiResponse<StartupData>(
         status: response.statusCode == 200,

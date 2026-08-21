@@ -47,18 +47,6 @@ class DioHelper {
     );
   }
 
-  Dio getServerCheckingkDio() {
-    var baseUrl = 'https://nameitanary.space';
-
-    return Dio(
-      BaseOptions(
-        baseUrl: baseUrl,
-        connectTimeout: const Duration(seconds: 60),
-        receiveTimeout: const Duration(seconds: 60),
-      ),
-    );
-  }
-
   Dio getDio() {
     String url = UrlHelper.getDecryptedUrl();
     if (url.endsWith('/')) {
