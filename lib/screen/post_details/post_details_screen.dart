@@ -3,7 +3,6 @@ import 'package:bamabin_desktop/core/routes.dart';
 import 'package:bamabin_desktop/core/widgets/bamabin_back_button.dart';
 import 'package:bamabin_desktop/core/widgets/bamabin_snackbar.dart';
 import 'package:bamabin_desktop/core/widgets/post_widget.dart';
-import 'package:bamabin_desktop/core/widgets/view_all_button.dart';
 import 'package:bamabin_desktop/data/local/temp_db.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/post.dart';
 import 'package:bamabin_desktop/data/remote/model/videos/post_details.dart';
@@ -340,6 +339,20 @@ class _CastItem extends StatelessWidget {
     }
   }
 
+  void _openAgentPosts(BuildContext context) {
+    if (agent.id <= 0) return;
+    final taxonomy = agent.type.trim().toLowerCase();
+    if (taxonomy.isEmpty) return;
+    context.push(
+      Routes.taxonomyPosts,
+      extra: TaxonomyPostsArgs(
+        taxonomy: taxonomy,
+        id: agent.id,
+        title: agent.name,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final initial = agent.name.isNotEmpty ? agent.name[0] : '?';
@@ -347,59 +360,68 @@ class _CastItem extends StatelessWidget {
 
     return SizedBox(
       width: _itemWidth,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: _avatarSize,
-            height: _avatarSize,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.09),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _openAgentPosts(context),
+          borderRadius: BorderRadius.circular(12),
+          mouseCursor: SystemMouseCursors.click,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: _avatarSize,
+                height: _avatarSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.09),
+                  ),
+                  color: const Color(0xFF1A1A22),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: agent.avatar.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: agent.avatar,
+                        width: _avatarSize,
+                        height: _avatarSize,
+                        fit: BoxFit.cover,
+                        errorWidget: (_, _, _) =>
+                            _CastInitial(initial: initial),
+                      )
+                    : _CastInitial(initial: initial),
               ),
-              color: const Color(0xFF1A1A22),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: agent.avatar.isNotEmpty
-                ? CachedNetworkImage(
-                    imageUrl: agent.avatar,
-                    width: _avatarSize,
-                    height: _avatarSize,
-                    fit: BoxFit.cover,
-                    errorWidget: (_, _, _) => _CastInitial(initial: initial),
-                  )
-                : _CastInitial(initial: initial),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            agent.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-              height: 1.3,
-            ),
-          ),
-          if (typeLabel.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              typeLabel,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w400,
-                color: Colors.white.withValues(alpha: 0.48),
-                height: 1.3,
+              const SizedBox(height: 12),
+              Text(
+                agent.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  height: 1.3,
+                ),
               ),
-            ),
-          ],
-        ],
+              if (typeLabel.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  typeLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white.withValues(alpha: 0.48),
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

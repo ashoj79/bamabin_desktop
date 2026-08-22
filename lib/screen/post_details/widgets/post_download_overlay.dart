@@ -266,8 +266,11 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
     MovieInfo info, {
     String? seasonName,
     int? episodeNumber,
+    bool checkAccess = true,
   }) async {
-    if (!await ensureMediaAccess(context, actionLabel: 'دانلود')) return;
+    if (checkAccess) {
+      if (!await ensureMediaAccess(context, actionLabel: 'دانلود')) return;
+    }
     if (info.link.isEmpty) return;
 
     final parts = <String>[widget.title];
@@ -364,6 +367,14 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
     return parts.join(' · ');
   }
 
+  String _bulkQualityPickLabel(QualityInfo quality) {
+    final label = _qualityLabel(quality.mainQuality, quality.quality);
+    final parts = <String>['کیفیت $label'];
+    if (quality.encoders.isNotEmpty) parts.add(quality.encoders);
+    if (quality.size.isNotEmpty) parts.add(quality.size);
+    return parts.join(' · ');
+  }
+
   Future<MovieInfo?> _pickEpisodeQuality({
     required List<QualityInfo> qualities,
     required int episodeNumber,
@@ -391,6 +402,71 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
     if (choices.length == 1) return choices.first.value;
 
     return _showDarkMenu<MovieInfo>(items: choices);
+  }
+
+  Future<QualityInfo?> _pickBulkQuality({
+    required List<QualityInfo> qualities,
+    required QualityInfo displayQuality,
+  }) async {
+    if (_selectedQuality != null) return displayQuality;
+
+    final choices = [
+      for (final quality in qualities)
+        if (quality.episodes.any((e) => e.link.isNotEmpty))
+          _MenuChoice(
+            value: quality,
+            label: _bulkQualityPickLabel(quality),
+          ),
+    ];
+
+    if (choices.isEmpty) return null;
+    if (choices.length == 1) return choices.first.value;
+
+    return _showDarkMenu<QualityInfo>(items: choices);
+  }
+
+  Future<void> _onDownloadAllEpisodes({
+    required List<QualityInfo> qualities,
+    required QualityInfo displayQuality,
+    required String seasonName,
+  }) async {
+    final picked = await _pickBulkQuality(
+      qualities: qualities,
+      displayQuality: displayQuality,
+    );
+    if (picked == null || !mounted) return;
+    if (!await ensureMediaAccess(context, actionLabel: 'دانلود')) return;
+    if (!mounted) return;
+
+    var added = 0;
+    for (var i = 0; i < picked.episodes.length; i++) {
+      final episode = _enrichEpisode(picked.episodes[i], picked);
+      if (episode.link.isEmpty) continue;
+      await _enqueueDownload(
+        episode,
+        seasonName: seasonName,
+        episodeNumber: i + 1,
+        checkAccess: false,
+      );
+      added++;
+    }
+
+    if (!mounted || added == 0) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('$added قسمت به دانلود اضافه شد')),
+    );
+  }
+
+  Future<void> _onCopyAllEpisodes({
+    required List<QualityInfo> qualities,
+    required QualityInfo displayQuality,
+  }) async {
+    final picked = await _pickBulkQuality(
+      qualities: qualities,
+      displayQuality: displayQuality,
+    );
+    if (picked == null || !mounted) return;
+    await _copyAllLinks(picked.episodes.map((e) => e.link).toList());
   }
 
   Future<void> _onEpisodeDownload({
@@ -768,9 +844,21 @@ class _PostDownloadOverlayState extends State<PostDownloadOverlay> {
                         ),
                       );
                     },
+                    onDownloadAll: (quality) {
+                      unawaited(
+                        _onDownloadAllEpisodes(
+                          qualities: _allQualitiesForType(box, sections[i].type),
+                          displayQuality: quality,
+                          seasonName: seasonName,
+                        ),
+                      );
+                    },
                     onCopyAll: (quality) {
-                      _copyAllLinks(
-                        quality.episodes.map((e) => e.link).toList(),
+                      unawaited(
+                        _onCopyAllEpisodes(
+                          qualities: _allQualitiesForType(box, sections[i].type),
+                          displayQuality: quality,
+                        ),
                       );
                     },
                   ),
@@ -1391,12 +1479,14 @@ class _SeriesQualityItem extends StatelessWidget {
     required this.quality,
     required this.onDownloadEpisode,
     required this.onCopyEpisode,
+    required this.onDownloadAll,
     required this.onCopyAll,
   });
 
   final QualityInfo quality;
   final void Function(MovieInfo episode, int episodeNumber) onDownloadEpisode;
   final ValueChanged<MovieInfo> onCopyEpisode;
+  final void Function(QualityInfo quality) onDownloadAll;
   final void Function(QualityInfo quality) onCopyAll;
 
   @override
@@ -1424,6 +1514,13 @@ class _SeriesQualityItem extends StatelessWidget {
           },
         ),
         const SizedBox(height: 10),
+        _PrimaryActionButton(
+          label: 'دانلود تمامی لینک ها',
+          iconAsset: 'assets/img/download.svg',
+          onTap: () => onDownloadAll(quality),
+          fullWidth: true,
+        ),
+        const SizedBox(height: 8),
         _PrimaryActionButton(
           label: 'کپی تمامی لینک ها',
           onTap: () => onCopyAll(quality),

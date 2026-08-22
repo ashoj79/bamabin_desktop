@@ -14,6 +14,7 @@ import 'package:bamabin_desktop/screen/post_details/widgets/post_online_play_ove
 import 'package:bamabin_desktop/screen/post_details/widgets/post_report_dialog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
@@ -852,6 +853,17 @@ class _HeroActionRow extends StatelessWidget {
         );
   }
 
+  Future<void> _share(BuildContext context) async {
+    final link = data?.link.trim() ?? '';
+    if (link.isEmpty) {
+      showBamabinSnackbar(context, 'لینک اشتراک‌گذاری موجود نیست');
+      return;
+    }
+    await Clipboard.setData(ClipboardData(text: link));
+    if (!context.mounted) return;
+    showBamabinSnackbar(context, 'لینک کپی شد');
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -903,7 +915,7 @@ class _HeroActionRow extends StatelessWidget {
         ),
         _IconHeroButton(
           svgAsset: 'assets/img/hero_share.svg',
-          onTap: () {},
+          onTap: () => _share(context),
         ),
       ],
     );
